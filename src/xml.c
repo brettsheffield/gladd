@@ -28,6 +28,8 @@
 #include <assert.h>
 #include <limits.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <syslog.h>
 #include <unistd.h>
 #include "http.h"
@@ -352,6 +354,14 @@ int xml_validate(const char *schema_filename, const char *xml)
         xmlSchemaParserCtxtPtr parser_ctxt;
         xmlSchemaPtr schema;
         int is_valid;
+        struct stat sb;
+
+        /* check schema exists and is a regular file */
+        if (stat(schema_filename, &sb) != 0) {
+                syslog(LOG_DEBUG, "could not stat schema '%s'. Skipping",
+                                schema_filename);
+                return 0;
+        }
 
         /* parse xml from memory */
         docxml = xmlReadMemory(xml, strlen(xml), "noname.xml", NULL, 0);

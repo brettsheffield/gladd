@@ -356,7 +356,7 @@ int xml_validate(const char *schema_filename, const char *xml)
         int is_valid;
         struct stat sb;
 
-        /* check schema exists and is a regular file */
+        /* skip schema validation if it does not exist */
         if (stat(schema_filename, &sb) != 0) {
                 syslog(LOG_DEBUG, "could not stat schema '%s'. Skipping",
                                 schema_filename);

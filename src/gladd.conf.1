@@ -1,0 +1,349 @@
+.TH GLADD.CONF 1
+.SH NAME
+gladd.conf - the configuration file for
+.B gladd(1)
+.SH DESCRIPTION
+Configuration of gladd happens in /etc/gladd.conf.
+.PP
+Any line beginning with a # is deemed to be a comment and will be ignored by
+the configration parser.
+.PP
+After making changes to gladd.conf, a "gladd reload" will trigger a HUP of the
+application.  If the new configuration is valid, it will be loaded.  It will
+be ignored if not.
+.PP
+NB: if persistent http connections are enabled, configuration will not be reloaded for any live connections. Any new connections will use the new configuration.
+.SH GLOBAL SETTINGS
+.TP
+.BR daemon
+0 = run gladd as a daemon (default).  1 = do not daemonize.
+.TP
+.BR debug
+0 = off (default), 1 = on.  With debug on, gladd will output a lot of
+information to syslog.
+.TP
+.BR encoding
+Character encoding to use.  Default UTF-8.
+.TP 
+.BR dropprivs
+0 = do not drop priviliges
+1 = drop privileges (default)
+.PP
+Sometimes it is useful to run gladd with root privileges, so that it can, for
+example, bind to a privileged port, such as 80 or 443.  To achieve this, set
+the binary to be setuid root (the default make install does this) and then run
+gladd as a non-privileged user.
+.PP
+The latter is important.  When gladd drops privs it will check to ensure that
+this worked, and that it can't get them back again.  If you try to run gladd
+*as* root, with dropprivs turned on, it will complain that it was unable to
+drop privs and fail to start.
+.PP
+gladd drops privs immediately after binding to a port.  If, for some reason
+you do *not* want to do this (you really want to run gladd as root with all
+the risks that involves), then set this option to 0.
+.PP
+One reason for running as root may be that you are running an older version of
+PAM with a pam_unix that requires root privs.  This can be used as a
+(temporary) hack to get around this while you find a newer PAM or alternate
+means of authentication.
+.TP
+.BR pipelining
+0 = off
+1 = on (default)
+When on, both persistent TCP connections and HTTP pipelining are enabled.
+When off, only a single HTTP request will be handled per connection, after
+which the connection will be closed (as in HTTP/1.0).
+.TP
+.BR port
+TCP port to listen on.  Default 8080.
+.TP
+.BR secretkey
+.PP
+The secret key to use when generating session cookies.  If you run multiple
+gladds, say, behind a load-balancer (or round robin DNS) then set all gladds
+in the cluster to use the same secretkey so they can read and verify each
+other's cookies.  Mmmm.  Cookies.
+.PP
+How long should the key be?  Presently gladd uses a blowfish cipher, which can
+use up to 448bits (56 bytes), so you are encouraged to use *at least* 56 bytes
+for the key.  It doesn't matter if it is longer than 56 bytes (it will be
+truncated), but the key should not be shorter than this.
+.PP
+If a secretkey is not set, gladd will generate a random one on startup.
+Obviously if you restart gladd using a random key any previously issued
+cookies will immediately become invalid.
+.PP
+.BR ssl
+0 = off (default)
+1 = on, allow SSLv2,SSLv3,tls
+2 = on, SSLv2 disabled
+3 = on, SSLv3 disabled (TLS 1.x only)
+.PP
+Turn on to enable ssl support.  Requires that gladd be configured and built
+with ssl support.  Gladd has support for both gnutls and openssl.  Of the two,
+openssl is the most tested.  GnuTLS 3.0+ works, I believe.  I've seen problems
+with GnuTLS 2.x and would not recommend its use.  If you enable ssl, you will
+require ssl-ca, ssl-key, ssl-cert and ssl-crl also.
+.TP
+.BR ssl-ca
+(required for ssl=1)
+Full path to your CA certificates file.
+eg. /etc/ssl/certs/ca-certificates.crt
+.TP
+.BR ssl-key
+(required for ssl=1)
+Full path to your SSL key.
+.TP
+.BR ssl-cert
+(required for ssl=1)
+Full path to your SSL certificate.
+.TP
+.BR ssl-crl
+(required for ssl=1)
+Full path to your SSL certificate revocation list.
+.TP
+.BR uploadmax
+Max size (MB) of file upload to accept.
+Default: 0 (unlimited)
+.TP
+.BR url_default
+Default: index.html
+Default url to serve up if a client requests / 
+.TP
+.BR x-forward
+0 = off (default)
+1 = on
+.PP
+If enabled, use the X-Forwarded-For header as the IP address of the client
+instead of the IP address of the connection.  Useful if gladd is sitting
+behind a proxy.
+.TP
+.BR xmlpath
+Default: .
+Path to root of xml files for use with xml/xslt-dependent url types.
+.SH DATABASES
+Definitions of databases for use with other configuration options.
+.PP
+Database definitions take the form:
+.PP
+db	<alias> <type> <host> <database> [<username>] [<password>]
+.PP
+eg.
+.PP
+db      gb	pg      localhost	gladbooks
+.PP
+db      db_test_my  my      localhost       gladd_test  myuser  mypass
+.PP
+db      ldap2       ldap    ldap://ldap.example.com dc=example,dc=com myuser mypass
+.PP
+<alias> - a convenient name to refer to this database as
+.PP
+<type>  - pg=postgresql, my=mysql/mariadb, ldap=openldap, tds=sybase/sqlserver
+.PP
+<host>  - hostname or IP address of server to connect to
+.PP
+<database> - the database to work with
+.PP
+<username> / <password> - credentials to use.  Not supported for pg.
+.SH URLS
+Here's where we define our application API.  There are several url types
+available.  Urls are matched in the order they are defined.  The first line
+where both the method and the url match will be used to handle the url.
+.PP
+The form is:
+.PP
+url <type> <method> <url> <path> <db> <view>
+.TP
+<type>
+Can be one of:
+static, sqlview, xslpost, xslt, upload, plugin, proxy, rewrite.  See URL TYPES (below).
+.TP
+<method>
+The HTTP method to use.  GET, POST, PULL, DELETE, BREW etc.
+.TP
+<url>
+The url to match.
+.TP
+<db>
+The database alias to use (must be defined in Databases - see above).
+.TP
+<view>
+The sql alias to user (must be defined in Views - see below).
+.SH URL TYPES
+.TP
+static
+Serve static files.
+.PP
+url static <method> <path>
+.PP
+eg.
+.PP
+url static GET /css/* /path/to/css/files/
+.TP
+sqlview
+Serve up results of an SQL query or ldap search as XML.
+.PP
+url sqlview <method> <url> <database> <view>
+.PP
+eg.
+.PP
+url sqlview GET /users/  db1  usersql
+.PP
+This will serve up the results of the query with alias "usersql" on database
+"db1".  usersql could be defined like:
+.PP
+sql usersql SELECT * FROM user;
+.TP
+xslpost
+Take the XML from a POST, check it matches an XSD schema, transform it into
+SQL using XSLT, and execute the resultant SQL on a database.
+.PP
+TODO: insert some description here of {xmlpath}/{create,update}.{xml,xsd,xsl}
+.TP
+xslt
+Like a sqlview, but transform the resulting XML using XSLT (view.xsl).
+.TP
+upload
+Handle file uploads from the browser using multipart MIME.  Write the files to
+the path specified, named according to their SHA1 sum.  Return the SHA1 to the
+client.
+.PP
+url upload <method> <url> <path>
+.PP
+eg.
+.PP
+url upload PUT /filestore/ /path/to/filestore/
+.TP
+plugin
+Execute a plugin.  If method is POST, pass the POST data to the stdin of the
+plugin, returning the results from stdout back to the client.  If method is
+GET, just execute the plugin and return the output.  Plugins can be written in
+any language.
+.PP
+url plugin <method> <url> <path_to_plugin>
+.TP
+proxy
+Fetch the url and return it to the client.
+.PP
+eg.
+.PP
+url proxy GET /remote/* http://example.com/
+.PP
+If the client requests /remote/somefile.txt gladd will fetch
+http://example.com/somefile.txt and return it.
+.TP
+rewrite
+Like proxy, but rewrite the url first, using $0, $1 etc to represent the
+first, second segments of the request respectively.
+.PP
+eg.
+.PP
+url rewrite GET /remote/*/ http://example.com/$1
+.PP
+If the client requests /remote/fred/ gladd will fetch http://example.com/fred
+and return it to the client.
+.SH ACCESS CONTROL
+Users and Groups can be defined in gladd.conf for testing.  Passwords for
+users are plaintext so this should not be used in production.
+.PP
+user	<username>	<unecrypted password>
+.PP
+group	<groupname>	<members>
+.PP
+members is a comma-separated list of usernames.
+.PP
+acls are defined with the following syntax:
+.PP
+acl <method> <url> <control> <auth>
+.PP
+method 	- HTTP method (eg. GET, POST, PUT, DELETE, *)
+.PP
+url	- url to restrict - supports * as a wildcard
+.PP
+control	- allow, deny, require, sufficient, params
+.TP
+allow
+=> allow access with no further checks
+.TP
+deny
+=> return 403 Forbidden with no further checks
+.TP
+require
+=> this rule MUST pass, or a 401 Unauthorized response is returned.  No further acls are processed.
+.TP 
+sufficient
+=> if this rule passes, access is granted and no further checks are performed.
+.TP
+params
+=> these appear before the main acls and are used for any parameters that we want to set which may affect how the url is handled.  Valid are:
+.PP
+nocache - add headers to response requesting url is not cached.
+.PP
+cookie:session - set a session cookie in response, if auth succeeds.
+.PP
+optional => the acl is checked as normal, but the outcome does not directly affect the outcome of the acl stack.  This is mostly useful in conjunction with a success/fail argument.
+.PP
+The sufficient, optional and required acls may have [condition=n] appended, where condition is either 'success' or 'fail' and n is the number of acls to skip forward if the condition is met.
+.PP
+eg. optional[success=2] will skip forward 2 acls.  [success=1] is the same as the default (ie. process the next acl as normal).
+.TP
+auth
+- the auth alias to use (see below) for authentication and/or authorization.  If '*', and control is 'sufficient' then each auth method is attempted in turn and only one needs to succeed.  If '*', and control is 'require' then every auth method is attempted in turn and ALL must succeed for access to be granted.
+.PP
+Auth Definitions
+.PP
+There are various types of auth available.  Auth here can refer to either
+authentication (who one is) and authorization (what one is permitted to do).
+Auth lines take the form:
+.PP
+auth <alias> <type> <arg1> <arg2> <arg3>
+.PP
+alias	- a convenient name to refer to this by.  Used in acls (above).
+.PP
+type	- user, group, cookie, ldap, pam
+.PP
+arg$	- either an argument used by the type, or '*'
+.PP
+eg.
+.PP
+Check username and password matches one of the locally defined ones in
+gladd.conf:
+.PP
+auth	eg1	user	*	*	*
+.PP
+Ensure user is in group "wheel":
+.PP
+auth	eg2	group	wheel	*	*
+.PP
+Validate session cookie and obtain username:
+.PP
+auth	eg3	cookie	*	*	*
+.PP
+Groups support url tokens in their names.  $0-$n will be replaced by that segment of the request URL (https://example.com/$0/$1/../$n/).
+.PP
+auth	eg4	group	org$0	*	*
+.PP
+Bind to ldap directory ldap1 (defined in databases - see above), using the
+username and password supplied:
+.PP
+auth	eg5	ldap	ldap1	ld_auth	uid
+.PP
+Authenticate against PAM service "login"
+.PP
+auth	eg6	pam	login	*	*
+.PP
+.SH VIEWS
+sql <alias> sql
+.PP
+Multiline config
+.PP
+begin sql
+        SELECT * FROM blah
+        ORDER BY blerk
+.PP
+end sql
+.PP
+More to come... watch this space!
+.SH SEE ALSO
+.B gladd(1)

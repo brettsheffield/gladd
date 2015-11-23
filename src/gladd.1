@@ -1,0 +1,26 @@
+.TH GLADD 1
+.SH NAME
+gladd \- a simple RESTful API engine
+.SH DESCRIPTION
+.B gladd
+is a very simple HTTPD, intended to support scalable, RESTful, API-driven web applications. It's small, fast and simple. The intention is to provide the thinnest layer possible between a web front end and the Linux operating system and database back ends. Maximum flexibility the with lowest overheads.
+.SH SYNOPSIS
+.B gladd start
+.PP
+.B gladd stop
+.PP
+.B gladd reload
+.PP
+NB: if persistent http connections are enabled, configuration will not be reloaded for any live connections. Any new connections will use the new configuration.
+.SH CONFIGURATION
+.B gladd
+logs to syslog. Debugging can be turned on by setting "debug 1" in gladd.conf.
+See 
+.BR gladd.conf(1) 
+for more information.
+.SH SUPPORT
+If you're thinking of using gladd for your application, I'd love to hear from you. I'm happy to answer questions and will try to get you pointed in the right direction. Documentation so far is patchy, so please ask if anything is confusing.
+.SH BUGS
+Please raise any bug reports on Github. https://github.com/brettsheffield/gladd/issues Feel free to send me patches or pull requests and I'll do my best to respond.
+.SH SEE ALSO
+.B gladd.conf(1)

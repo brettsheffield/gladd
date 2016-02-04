@@ -3,7 +3,7 @@
  *
  * this file is part of GLADD
  *
- * Copyright (c) 2012-2015 Brett Sheffield <brett@gladserv.com>
+ * Copyright (c) 2012-2016 Brett Sheffield <brett@gladserv.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -55,6 +55,9 @@ config_t config_default = {
 
 config_t *config;
 config_t *config_new;
+
+/* current domain being processed in config, default = '*' */
+char *domain;
 
 acl_t  *prevacl;        /* pointer to last acl */
 auth_t *prevauth;       /* pointer to last auth */
@@ -608,6 +611,7 @@ void free_urls(url_t *u)
         while (u != NULL) {
                 free(u->method);
                 free(u->url);
+                free(u->domain);
                 free(u->path);
                 free(u->db);
                 free(u->view);
@@ -721,6 +725,7 @@ void handle_url_static(char *type, char params[LINE_MAX])
                 newurl->type = type;
                 newurl->method = strdup(method);
                 newurl->url = strdup(url);
+                newurl->domain = strdup(domain);
                 newurl->path = strdup(path);
                 newurl->db = NULL;
                 newurl->view = NULL;
@@ -756,6 +761,7 @@ void handle_url_dynamic(char *type, char params[LINE_MAX])
                 newurl->url = strdup(url);
                 newurl->db = strdup(db);
                 newurl->view = strdup(view);
+                newurl->domain = strdup(domain);
                 newurl->path = NULL;
                 newurl->next = NULL;
                 if (prevurl != NULL) {
@@ -864,7 +870,10 @@ int process_config_line(char *line)
                 }
         }
         else if (sscanf(line, "%s %[^\n]", key, value) == 2) {
-                if (strcmp(key, "encoding") == 0) {
+                if (strcmp(key, "domain") == 0) {
+                        i = set_domain(value);
+                }
+                else if (strcmp(key, "encoding") == 0) {
                         i = set_encoding(value);
                 }
                 else if (strcmp(key, "include") == 0) {
@@ -945,6 +954,8 @@ int process_config_file(char *configfile)
         fd = open_config(configfile);
         if (fd == NULL)
                 return 0;
+
+	asprintf(&domain, "*");
 
         /* read in config */
         while (fgets(line, LINE_MAX, fd) != NULL) {
@@ -1038,6 +1049,13 @@ int set_config_long(long *confset, char *keyname, long i, long min, long max)
                 return -1;
         }
         return 0;
+}
+
+int set_domain(char *value)
+{
+        free(domain);
+        domain = strdup(value);
+        return (domain == NULL) ? 0 : 1;
 }
 
 int set_encoding(char *value)

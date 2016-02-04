@@ -3,7 +3,7 @@
  *
  * this file is part of GLADD
  *
- * Copyright (c) 2012-2015 Brett Sheffield <brett@gladserv.com>
+ * Copyright (c) 2012-2016 Brett Sheffield <brett@gladserv.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -123,6 +123,7 @@ typedef struct url_t {
         char *type;
         char *method;
         char *url;
+        char *domain;
         char *path;
         char *db;
         char *view;
@@ -169,6 +170,7 @@ int     read_config(char *configfile);
 int     set_config_defaults();
 int     set_config_long(long *confset, char *keyname, long i, long min,
                 long max);
+int     set_domain (char *value);
 int     set_encoding(char *value);
 int     set_ssl(char *key, char *value);
 int     set_xmlpath(char *value);

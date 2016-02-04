@@ -955,8 +955,6 @@ int process_config_file(char *configfile)
         if (fd == NULL)
                 return 0;
 
-	asprintf(&domain, "*");
-
         /* read in config */
         while (fgets(line, LINE_MAX, fd) != NULL) {
                 lc++;
@@ -990,6 +988,8 @@ int read_config(char *configfile)
         config_new = &config_default;
 
         prevurl = NULL;
+
+	asprintf(&domain, "*");
 
         if (!process_config_file(configfile))
                 return 1;

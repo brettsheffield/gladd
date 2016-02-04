@@ -25,6 +25,7 @@
 
 #include "http.h"
 
+char *auth_get_host();
 int auth_set_cookie(char **r, http_cookie_type_t type);
 int auth_unset_cookie(char **r);
 char *decipher(char *ciphertext);

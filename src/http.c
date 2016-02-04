@@ -263,6 +263,9 @@ url_t *http_match_url(http_request_t *r)
 {
         url_t *u;
         char *ip;
+        char *host = http_get_header(request, "Host");
+
+        syslog(LOG_DEBUG, "Host requested: %s", host);
 
         ip = (r->xforwardip) ? r->xforwardip : r->clientip;
 
@@ -270,6 +273,7 @@ url_t *http_match_url(http_request_t *r)
         u = config->urls;
         while (u != NULL) {
                 if ((fnmatch(u->url, r->res, 0) == 0) &&
+                         (fnmatch(u->domain, host, 0) == 0) &&
                          (strcmp(r->method, u->method) == 0))
                 {
                         break;

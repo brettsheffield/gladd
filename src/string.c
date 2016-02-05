@@ -168,13 +168,14 @@ char *replaceall(char *str, char *find, char *repl)
 }
 
 /* replace $0, $1, ... $n in target with their counterparts from tokens */
-int replace_tokens(char **target, char **tokens, int toknum, char *tokmark)
+int replace_tokens(char **target, char **tokens, int toknum, char *tokmark,
+                   int starttok)
 {
         int i;
         char *tmp;
         char *var;
-        for (i=1; i <= toknum; i++) {
-                asprintf(&var, "%s%i", tokmark, i-1);
+        for (i=0; i <= toknum; i++) {
+                asprintf(&var, "%s%i", tokmark, i-starttok);
                 tmp = replaceall(*target, var, tokens[i]);
                 free(var);
                 free(*target);

@@ -33,7 +33,8 @@ char randchar();
 char *randstring(int len);
 char *replace(char *str, char *find, char *repl);
 char *replaceall(char *str, char *find, char *repl);
-int replace_tokens(char **target, char **tokens, int toknum, char *tokmark);
+int replace_tokens(char **target, char **tokens, int toknum, char *tokmark,
+                   int starttok);
 char *rstrip(char *str);
 int strlcmp(const char *str, const char *match);
 char *strip(char *str);

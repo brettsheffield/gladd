@@ -224,12 +224,27 @@ void replacevars(char **target, char *url)
         int toknum;
         char *tmp;
 
+	/* do $0, $1, ... $n url path replacements */
         tokens = tokenize(&toknum, &url, "/");
-        replace_tokens(target, tokens, toknum, "$");
+        replace_tokens(target, tokens, toknum, "$", 1);
         free(tokens);
 
-        /* replace occurances of $user with username */
         if (request) {
+		char *host = http_get_header(request, "Host");
+
+		/* do $d0, $d1, ... $n domain part replacements */
+		char *h = strdup(host);
+		tokens = tokenize(&toknum, &h, ".");
+		replace_tokens(target, tokens, toknum, "$d", 0);
+		free(tokens);
+		free(h);
+
+		/* $fqdn */
+		tmp = replaceall(*target, "$fqdn", host);
+		*target = strdup(tmp);
+		free(tmp);
+
+		/* replace occurances of $user with username */
                 if (request->authuser) {
                         char *auser = strdup(request->authuser);
                         tmp = replaceall(*target, "$user", auser);

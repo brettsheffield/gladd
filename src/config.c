@@ -58,6 +58,7 @@ config_t *config_new;
 
 /* current domain being processed in config, default = '*' */
 char *domain;
+char *docroot;          /* default = '/' */
 
 acl_t  *prevacl;        /* pointer to last acl */
 auth_t *prevauth;       /* pointer to last auth */
@@ -526,6 +527,7 @@ void free_config()
         free_urls(config->urls);
         free_users(config->users);
         free_groups(config->groups);
+        free(docroot);
 
         config_new = NULL;
         prevacl = NULL;
@@ -726,7 +728,7 @@ void handle_url_static(char *type, char params[LINE_MAX])
                 newurl->method = strdup(method);
                 newurl->url = strdup(url);
                 newurl->domain = strdup(domain);
-                newurl->path = strdup(path);
+                asprintf(&newurl->path, "%s/%s", docroot, path);
                 newurl->db = NULL;
                 newurl->view = NULL;
                 newurl->next = NULL;
@@ -873,6 +875,9 @@ int process_config_line(char *line)
                 if (strcmp(key, "domain") == 0) {
                         i = set_domain(value);
                 }
+		else if (strcmp(key, "document_root") == 0) {
+                        i = set_docroot(value);
+                }
                 else if (strcmp(key, "encoding") == 0) {
                         i = set_encoding(value);
                 }
@@ -990,6 +995,7 @@ int read_config(char *configfile)
         prevurl = NULL;
 
 	asprintf(&domain, "*");
+	asprintf(&docroot, "/");
 
         if (!process_config_file(configfile))
                 return 1;
@@ -1056,6 +1062,13 @@ int set_domain(char *value)
         free(domain);
         domain = strdup(value);
         return (domain == NULL) ? 0 : 1;
+}
+
+int set_docroot(char *value)
+{
+        free(docroot);
+        docroot = strdup(value);
+        return (docroot == NULL) ? 0 : 1;
 }
 
 int set_encoding(char *value)

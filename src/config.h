@@ -171,6 +171,7 @@ int     set_config_defaults();
 int     set_config_long(long *confset, char *keyname, long i, long min,
                 long max);
 int     set_domain (char *value);
+int     set_docroot (char *value);
 int     set_encoding(char *value);
 int     set_ssl(char *key, char *value);
 int     set_xmlpath(char *value);

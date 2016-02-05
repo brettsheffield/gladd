@@ -457,7 +457,7 @@ http_status_code_t response_sqlexec(int sock, url_t *u)
         {
                 return HTTP_INTERNAL_SERVER_ERROR;
         }
-        sqlvars(&sql, request->res);
+        replacevars(&sql, request->res);
         syslog(LOG_DEBUG, "SQL: %s", sql);
         if (db_exec_sql(db, sql) != 0) {
                 free(sql);
@@ -901,7 +901,7 @@ http_status_code_t response_upload(int sock, url_t *u)
 
         /* ensure destination directory exists */
         dir = strdup(u->path);
-        sqlvars(&dir, request->res);
+        replacevars(&dir, request->res);
         umask(022);
         if (!rmkdir(dir, 0755)) {
                 free(dir);
@@ -1005,7 +1005,7 @@ http_status_code_t response_xml_plugin(int sock, url_t *u)
                 /* execute plugin */
 		int i = 0;
                 char *cmd = strdup(u->path);
-                sqlvars(&cmd, request->res);
+                replacevars(&cmd, request->res);
 		char **args = calloc(strlen(cmd), sizeof(char *));
 		args[i++] = cmd;
 		char *word = strtok(cmd, " ");
@@ -1074,7 +1074,7 @@ http_status_code_t response_plugin(int sock, url_t *u)
         char *cmd = NULL;
 
         cmd = strdup(u->path);
-        sqlvars(&cmd, request->res);
+        replacevars(&cmd, request->res);
         syslog(LOG_DEBUG, "executing plugin: %s", cmd);
         fd = popen(cmd, "r");
         if (fd == NULL) {
@@ -1156,7 +1156,7 @@ int send_file(int sock, char *file, http_status_code_t *err)
 
         /* perform variable substitution on path */
         path = strdup(file);
-        sqlvars(&path, request->res);
+        replacevars(&path, request->res);
 
         f = open(path, O_RDONLY);
         if (f == -1) {

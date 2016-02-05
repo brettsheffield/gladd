@@ -3,7 +3,7 @@
  *
  * this file is part of GLADD
  *
- * Copyright (c) 2012, 2013 Brett Sheffield <brett@gladserv.com>
+ * Copyright (c) 2012-2016 Brett Sheffield <brett@gladserv.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -165,6 +165,23 @@ char *replaceall(char *str, char *find, char *repl)
         free(tmp);
 
         return newstr;
+}
+
+/* replace $0, $1, ... $n in target with their counterparts from tokens */
+int replace_tokens(char **target, char **tokens, int toknum, char *tokmark)
+{
+        int i;
+        char *tmp;
+        char *var;
+        for (i=1; i <= toknum; i++) {
+                asprintf(&var, "%s%i", tokmark, i-1);
+                tmp = replaceall(*target, var, tokens[i]);
+                free(var);
+                free(*target);
+                *target = strdup(tmp);
+                free(tmp);
+        }
+        return i;
 }
 
 /* trim trailing spaces from string */

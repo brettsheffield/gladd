@@ -821,7 +821,7 @@ http_status_code_t http_response_proxy(int sock, url_t *u)
         }
         else if (strcmp(u->type, "rewrite") == 0) {
                 asprintf(&url, "%s", u->path);
-                sqlvars(&url, request->res);
+                replacevars(&url, request->res);
         }
         syslog(LOG_DEBUG, "proxying %s", url);
 

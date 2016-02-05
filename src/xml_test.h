@@ -25,6 +25,6 @@
 
 char *test_xml_doc();
 char *test_xml_to_sql();
-char *test_xml_sqlvars();
+char *test_xml_replacevars();
 
 #endif /*__GLADD_XML_TEST_H__ */

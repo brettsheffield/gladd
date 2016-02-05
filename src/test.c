@@ -100,7 +100,7 @@ static char * all_tests()
         mu_run_test(test_xml_to_sql);
         mu_run_test(test_http_read_request_post_xml);
         mu_run_test(test_string_tokenize);
-        mu_run_test(test_xml_sqlvars);
+        mu_run_test(test_xml_replacevars);
         mu_run_test(test_config_read_users);
         mu_run_test(test_config_read_groups);
         free_config();

@@ -3,7 +3,7 @@
  *
  * this file is part of GLADD
  *
- * Copyright (c) 2012, 2013 Brett Sheffield <brett@gladserv.com>
+ * Copyright (c) 2012-2016 Brett Sheffield <brett@gladserv.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,6 +33,7 @@ char randchar();
 char *randstring(int len);
 char *replace(char *str, char *find, char *repl);
 char *replaceall(char *str, char *find, char *repl);
+int replace_tokens(char **target, char **tokens, int toknum, char *tokmark);
 char *rstrip(char *str);
 int strlcmp(const char *str, const char *match);
 char *strip(char *str);

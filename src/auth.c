@@ -285,7 +285,7 @@ int check_auth_alias(char *alias, http_request_t *r)
         else if (strcmp(a->type, "group") == 0) {
                 char *vgroup = strdup(a->db);
                 char *url = strdup(r->res);
-                sqlvars(&vgroup, url);
+                replacevars(&vgroup, url);
                 if (check_auth_group(r->authuser, vgroup)) {
                         syslog(LOG_DEBUG, "user %s in group %s",
                                 r->authuser, vgroup);

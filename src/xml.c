@@ -3,7 +3,7 @@
  *
  * this file is part of GLADD
  *
- * Copyright (c) 2012-2015 Brett Sheffield <brett@gladserv.com>
+ * Copyright (c) 2012-2016 Brett Sheffield <brett@gladserv.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -144,7 +144,7 @@ int sqltoxml(db_t *db, char *sql, field_t *filter, char **xml, int pretty)
 
         /* do variable substitution */
         newsql = strdup(sql);
-        sqlvars(&newsql, request->res);
+        replacevars(&newsql, request->res);
         syslog(LOG_DEBUG, "SQL: %s\n", newsql);
 
         if (db_fetch_all(db, newsql, filter, &rows, &rowc) < 0) {
@@ -202,40 +202,6 @@ close_conn:
 }
 #endif /* _NGLADDB */
 
-/* subsitute variables in sql for their values */
-void sqlvars(char **sql, char *url)
-{
-        char **tokens;
-        int toknum;
-        char *sqltmp;
-        char *var;
-        int i;
-
-        tokens = tokenize(&toknum, &url, "/");
-
-        for (i=1; i <= toknum; i++) {
-                asprintf(&var, "$%i", i-1);
-                sqltmp = replaceall(*sql, var, tokens[i]);
-                free(var);
-                free(*sql);
-                *sql = strdup(sqltmp);
-                free(sqltmp);
-        }
-
-        /* replace occurances of $user with username */
-        if (request) {
-                if (request->authuser) {
-                        char *auser = strdup(request->authuser);
-                        sqltmp = replaceall(*sql, "$user", auser);
-                        *sql = strdup(sqltmp);
-                        free(sqltmp);
-                        free(auser);
-                }
-        }
-
-        free(tokens);
-}
-
 int flattenxml(xmlDocPtr doc, char **xml, int pretty)
 {
         xmlChar *xmlbuff;
@@ -249,6 +215,29 @@ int flattenxml(xmlDocPtr doc, char **xml, int pretty)
         xmlFree(xmlbuff);
         
         return 0;
+}
+
+/* replace macro variables in string */
+void replacevars(char **target, char *url)
+{
+        char **tokens;
+        int toknum;
+        char *tmp;
+
+        tokens = tokenize(&toknum, &url, "/");
+        replace_tokens(target, tokens, toknum, "$");
+        free(tokens);
+
+        /* replace occurances of $user with username */
+        if (request) {
+                if (request->authuser) {
+                        char *auser = strdup(request->authuser);
+                        tmp = replaceall(*target, "$user", auser);
+                        *target = strdup(tmp);
+                        free(tmp);
+                        free(auser);
+                }
+        }
 }
 
 /* convert latin1 (ISO-8859-1) to UTF-8 */

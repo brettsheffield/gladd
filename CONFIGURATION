@@ -120,6 +120,29 @@ xmlpath
 Default: .
 Path to root of xml files for use with xml/xslt-dependent url types.
 
+== Virtualhosts ==
+
+domain
+default: *
+Setting domain affects all url configuration lines after it.  Urls will only match if the path and domain both agree.  domain can use wildcards such as *.example.com or example.*.uk
+Used in conjunction with the $fqdn macro virtualhosts can be set up.  eg.
+
+domain *
+url static GET /* /var/www/$fqdn/
+
+# The parts of the domain are available as separate macros $d0 .. $n
+# ie. 
+domain example.com
+url static GET /* /var/www/com/example/
+# could be written as:
+domain example.com
+url static GET /* /var/www/$d1/$d0/
+
+# The document_root directive can be used to avoid repetition:
+document_root /var/www
+url static GET /one /one/
+url static GET /two /two/
+
 == Databases ==
 
 Definitions of databases for use with other configuration options.

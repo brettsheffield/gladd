@@ -726,8 +726,19 @@ void handle_url_static(char *type, char params[LINE_MAX])
         if (sscanf(params, "%s %s %[^\n]", method, url, path) == 3) {
                 newurl->type = type;
                 newurl->method = strdup(method);
-                newurl->url = strdup(url);
-                newurl->domain = strdup(domain);
+                /* if url starts with //, use first segment as domain */
+                if (strncmp(url, "//", 2) == 0) {
+                        int segs = 0;
+                        char *s = strdup(url);
+                        char **toks = tokenize(&segs, &s, "/");
+                        newurl->domain = strdup(toks[2]);
+                        free(s);
+                        newurl->url = strdup(url + strlen(newurl->domain) + 2);
+                }
+                else {
+                        newurl->url = strdup(url);
+                        newurl->domain = strdup(domain);
+                }
                 asprintf(&newurl->path, "%s/%s", docroot, path);
                 newurl->db = NULL;
                 newurl->view = NULL;

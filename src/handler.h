@@ -3,7 +3,7 @@
  *
  * this file is part of GLADD
  *
- * Copyright (c) 2012, 2013 Brett Sheffield <brett@gladserv.com>
+ * Copyright (c) 2012-2016 Brett Sheffield <brett@gladserv.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,10 +38,14 @@ void handle_connection(int sock, struct sockaddr_storage their_addr);
 handler_result_t handle_request(int sock, char *s);
 size_t rcv(int sock, void *data, size_t len, int flags);
 ssize_t snd(int sock, void *data, size_t len, int flags);
+ssize_t snd_blank_line(int sock);
 void respond (int fd, char *response);
 int send_file(int sock, char *path, http_status_code_t *err);
 void setcork(int sock, int state);
 void set_headers(char **r);
+#ifdef _GIT
+http_status_code_t response_git(int sock, url_t *u);
+#endif
 #ifndef _NLDIF
 http_status_code_t response_ldif(int sock, url_t *u);
 #endif

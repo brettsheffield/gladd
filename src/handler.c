@@ -59,6 +59,10 @@
 #include <unistd.h>
 #include <uuid/uuid.h>
 
+#ifdef _GIT
+#include <git2.h>
+#endif /* _GIT */
+
 #ifndef _NGLADDB
 #ifndef _NLDIF
 #include <ldap.h>
@@ -265,6 +269,13 @@ handler_result_t handle_request(int sock, char *s)
                 if (err != 0)
                         http_response(sock, err);
         }
+#ifdef _GIT
+	else if (strcmp(u->type, "git") == 0) {
+                err = response_git(sock, u);
+                if (err != 0)
+                        http_response(sock, err);
+	}
+#endif /* _GIT */
 #ifndef _NGLADDB
 #ifndef _NLDIF
         else if (strcmp(u->type, "ldif") == 0) {
@@ -1089,7 +1100,7 @@ http_status_code_t response_plugin(int sock, url_t *u)
         /* write HTTP headers */
         //set_headers(&r); /* set any additional headers */
         http_response_headers(sock, HTTP_OK, 0, NULL);
-        snd(sock, "\r\n", 2, 0); /* Send blank line */
+        snd_blank_line(sock);
 
         /* keep reading from plugin and sending output back to HTTP client */
         char *chunksize;
@@ -1103,7 +1114,7 @@ http_status_code_t response_plugin(int sock, url_t *u)
                 free(chunksize);
         }
         snd(sock, "0\r\n", 3, 0); /* Send final (empty) chunk */
-        snd(sock, "\r\n", 2, 0); /* Send blank line */
+        snd_blank_line(sock);
 
         /* pop TCP cork */
         setcork(sock, 0);
@@ -1117,6 +1128,99 @@ http_status_code_t response_plugin(int sock, url_t *u)
 
         return err;
 }
+
+#ifdef _GIT
+http_status_code_t response_git(int sock, url_t *u)
+{
+        http_status_code_t err = 0;
+        git_repository *repo = NULL;
+        git_reference *ref = NULL;
+        git_object *obj = NULL;
+        git_tree_entry *entry = NULL;
+        int rc = 0;
+        char *gitrepo;
+        char *branch;
+        char *revstr;
+        const git_oid *oid = NULL;
+        const char *ptr;
+
+        /* open repository */
+        gitrepo = strdup(u->db);
+        replacevars(&gitrepo, request->res);
+        syslog(LOG_DEBUG, "opening git repo '%s'", gitrepo);
+        rc = git_repository_open_bare(&repo, gitrepo);
+        if (rc != 0) {
+                syslog(LOG_DEBUG, "error in git_repository_open_bare()");
+                free(gitrepo);
+                return HTTP_NOT_FOUND;
+        }
+	free(gitrepo);
+
+        /* find branch */
+        branch = strdup(u->view);
+        replacevars(&branch, request->res);
+        rc = git_branch_lookup(&ref, repo, branch, GIT_BRANCH_LOCAL);
+        if (rc != 0) {
+                syslog(LOG_DEBUG, "'%s' is not a valid branch", branch);
+		free(branch);
+                git_repository_free(repo);
+                return HTTP_NOT_FOUND;
+        }
+
+        /* find blob that matches requested file */
+        asprintf(&revstr, "%s^{tree}", branch);
+        rc = git_revparse_single(&obj, repo, revstr);
+        if (rc != 0) {
+                syslog(LOG_DEBUG, "error in git_revparse_single()");
+		free(branch);
+                git_repository_free(repo);
+                return HTTP_INTERNAL_SERVER_ERROR;
+        }
+        git_tree *tree = (git_tree *)obj;
+        char *file = request->res + 1; /* strip leading slash */
+        syslog(LOG_DEBUG, "fetching '%s' from branch '%s'", file, branch);
+        rc = git_tree_entry_bypath(&entry, tree, file);
+        if (rc != 0) {
+                syslog(LOG_DEBUG, "'%s' not found in branch '%s'",
+                       file, branch);
+		free(branch);
+                git_repository_free(repo);
+                return HTTP_NOT_FOUND;
+        }
+        free(branch);
+        free(revstr);
+        oid = git_tree_entry_id(entry);
+        git_blob *blob = NULL;
+        rc = git_blob_lookup(&blob, repo, oid);
+        if (rc != 0) {
+                syslog(LOG_DEBUG, "error in git_blob_lookup()");
+                git_repository_free(repo);
+                return HTTP_INTERNAL_SERVER_ERROR;
+        }
+
+        /* output raw blob */
+        ptr = git_blob_rawcontent(blob);
+
+	/* TODO: support non-text mime types */
+        char *mime = "text/plain";
+
+	http_response_headers(sock, 200, git_blob_rawsize(blob), mime);
+	snd_blank_line(sock);
+        snd(sock, (void *)ptr, (size_t)git_blob_rawsize(blob), 0);
+
+	/* pop TCP cork */
+	setcork(sock, 0);
+
+        /* clean up */
+        git_object_free(obj);
+        git_blob_free(blob);
+        git_tree_entry_free(entry);
+        git_reference_free(ref);
+        git_repository_free(repo);
+
+        return err;
+}
+#endif /* _GIT */
 
 /* serve static files */
 http_status_code_t response_static(int sock, url_t *u)
@@ -1303,6 +1407,11 @@ ssize_t snd(int sock, void *data, size_t len, int flags)
                 }
         }
         return bytes;
+}
+
+ssize_t snd_blank_line(int sock)
+{
+	return snd(sock, "\r\n", 2, 0);
 }
 
 void setcork(int sock, int state)

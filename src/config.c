@@ -388,6 +388,11 @@ int add_url_handler(char *value)
                 if (strcmp(type, "static") == 0) {
                         handle_url_static("static", params);
                 }
+#ifdef _GIT
+		else if (strcmp(type, "git") == 0) {
+                        handle_url_dynamic("git", params);
+                }
+#endif /* _GIT */
                 else if (strcmp(type, "ldif") == 0) {
                         handle_url_dynamic("ldif", params);
                 }

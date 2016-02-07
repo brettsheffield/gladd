@@ -2,7 +2,7 @@
 # 
 # this file is part of GLADD
 # 
-# Copyright (c) 2012-2015 Brett Sheffield <brett@gladserv.com>
+# Copyright (c) 2012-2016 Brett Sheffield <brett@gladserv.com>
 # 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -224,6 +224,13 @@ then
 else
 	AC_SUBST(incxml, -I/usr/include/libxml2)
 	AC_SUBST(libxml, -lxml2)
+fi
+
+AC_CHECK_LIB([git2], [git_blob_lookup], [git=1] , [git=0])
+if test "$git" == "1"
+then
+        AC_SUBST(lgit2, -lgit2)
+	AC_SUBST(git, -D_GIT)
 fi
 
 # Checks for header files.

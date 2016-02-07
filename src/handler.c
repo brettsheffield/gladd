@@ -1138,18 +1138,23 @@ http_status_code_t response_git(int sock, url_t *u)
         git_object *obj = NULL;
         git_tree_entry *entry = NULL;
         int rc = 0;
+        char *gitrepo;
         char *branch;
         char *revstr;
         const git_oid *oid = NULL;
         const char *ptr;
 
         /* open repository */
-        syslog(LOG_DEBUG, "opening git repo '%s'", u->db);
-        rc = git_repository_open_bare(&repo, u->db);
+        gitrepo = strdup(u->db);
+        replacevars(&gitrepo, request->res);
+        syslog(LOG_DEBUG, "opening git repo '%s'", gitrepo);
+        rc = git_repository_open_bare(&repo, gitrepo);
         if (rc != 0) {
                 syslog(LOG_DEBUG, "error in git_repository_open_bare()");
-                return HTTP_INTERNAL_SERVER_ERROR;
+                free(gitrepo);
+                return HTTP_NOT_FOUND;
         }
+	free(gitrepo);
 
         /* find branch */
         branch = strdup(u->view);

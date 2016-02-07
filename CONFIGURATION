@@ -197,6 +197,13 @@ eg.
 url static GET /css/* /path/to/css/files/
 
 
+git
+
+serve files directly from git
+url git <method> <repo> <branch>
+url git GET /* /path/to/git/repo/.git master
+
+
 sqlview
 
 Serve up results of an SQL query or ldap search as XML.

@@ -1152,10 +1152,12 @@ http_status_code_t response_git(int sock, url_t *u)
         }
 
         /* find branch */
-        branch = u->view;
+        branch = strdup(u->view);
+        replacevars(&branch, request->res);
         rc = git_branch_lookup(&ref, repo, branch, GIT_BRANCH_LOCAL);
         if (rc != 0) {
                 syslog(LOG_DEBUG, "'%s' is not a valid branch", branch);
+		free(branch);
                 git_repository_free(repo);
                 return HTTP_NOT_FOUND;
         }
@@ -1165,6 +1167,7 @@ http_status_code_t response_git(int sock, url_t *u)
         rc = git_revparse_single(&obj, repo, revstr);
         if (rc != 0) {
                 syslog(LOG_DEBUG, "error in git_revparse_single()");
+		free(branch);
                 git_repository_free(repo);
                 return HTTP_INTERNAL_SERVER_ERROR;
         }
@@ -1175,9 +1178,11 @@ http_status_code_t response_git(int sock, url_t *u)
         if (rc != 0) {
                 syslog(LOG_DEBUG, "'%s' not found in branch '%s'",
                        file, branch);
+		free(branch);
                 git_repository_free(repo);
                 return HTTP_NOT_FOUND;
         }
+        free(branch);
         free(revstr);
         oid = git_tree_entry_id(entry);
         git_blob *blob = NULL;

@@ -628,6 +628,8 @@ LIBOBJS
 EGREP
 GREP
 CPP
+git
+lgit2
 libxml
 incxml
 xml
@@ -4270,6 +4272,56 @@ else
 	incxml=-I/usr/include/libxml2
 
 	libxml=-lxml2
+
+fi
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for git_blob_lookup in -lgit2" >&5
+$as_echo_n "checking for git_blob_lookup in -lgit2... " >&6; }
+if ${ac_cv_lib_git2_git_blob_lookup+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lgit2  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char git_blob_lookup ();
+int
+main ()
+{
+return git_blob_lookup ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_git2_git_blob_lookup=yes
+else
+  ac_cv_lib_git2_git_blob_lookup=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_git2_git_blob_lookup" >&5
+$as_echo "$ac_cv_lib_git2_git_blob_lookup" >&6; }
+if test "x$ac_cv_lib_git2_git_blob_lookup" = xyes; then :
+  git=1
+else
+  git=0
+fi
+
+if test "$git" == "1"
+then
+        lgit2=-lgit2
+
+	git=-D_GIT
 
 fi
 

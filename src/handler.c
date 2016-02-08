@@ -363,7 +363,7 @@ http_status_code_t response_ldif(int sock, url_t *u)
                 syslog(LOG_ERR, "ldif method not POST");
                 return HTTP_METHOD_NOT_ALLOWED;
         }
-        if (!(db = getdb(u->db))) {
+        if (!(db = getdbv(u->db))) {
                 syslog(LOG_ERR, "db '%s' not in config", u->db);
                 return HTTP_INTERNAL_SERVER_ERROR;
         }
@@ -380,6 +380,7 @@ http_status_code_t response_ldif(int sock, url_t *u)
                 if (rc != LDAP_SUCCESS) {
                         syslog(LOG_ERR, "bind failed: %s", ldap_err2string(rc));
                         db_disconnect(db);
+                        free_db(db);
                         return HTTP_UNAUTHORIZED;
                 }
         }
@@ -388,6 +389,7 @@ http_status_code_t response_ldif(int sock, url_t *u)
         rc = process_ldif(db, fp);
         ldif_close(fp);
         db_disconnect(db);
+        free_db(db);
         http_response(sock, (rc == 1) ? HTTP_OK : HTTP_BAD_REQUEST);
         return 0;
 }
@@ -468,21 +470,24 @@ http_status_code_t response_sqlexec(int sock, url_t *u)
         char *sql = NULL;
         db_t *db = NULL;
 
-        if (!(db = getdb(u->db))) {
+        if (!(db = getdbv(u->db))) {
                 syslog(LOG_ERR, "db '%s' not in config", u->db);
                 return HTTP_INTERNAL_SERVER_ERROR;
         }
         if (asprintf(&sql, "%s", getsql(u->view)) == -1)
         {
+                free_db(db);
                 return HTTP_INTERNAL_SERVER_ERROR;
         }
         replacevars(&sql, request->res);
         syslog(LOG_DEBUG, "SQL: %s", sql);
         if (db_exec_sql(db, sql) != 0) {
                 free(sql);
+                free_db(db);
                 return HTTP_INTERNAL_SERVER_ERROR;
         }
         free(sql);
+        free_db(db);
         http_response(sock, HTTP_OK);
 
         return 0;
@@ -510,7 +515,7 @@ http_status_code_t response_xslpost(int sock, url_t *u)
                 return HTTP_METHOD_NOT_ALLOWED;
         }
 
-        if (!(db = getdb(u->db))) {
+        if (!(db = getdbv(u->db))) {
                 syslog(LOG_ERR, "db '%s' not in config", u->db);
                 return HTTP_INTERNAL_SERVER_ERROR;
         }
@@ -518,6 +523,7 @@ http_status_code_t response_xslpost(int sock, url_t *u)
         /* fetch element id as filter, if applicable */
         filter = get_element(&err);
         if (err != 0) {
+                free_db(db);
                 return err;
         }
 
@@ -549,6 +555,7 @@ http_status_code_t response_xslpost(int sock, url_t *u)
 
         if (xmltransform(xsl, request->data->value, &sql, filter) != 0) {
                 free(xsl);
+                free_db(db);
                 syslog(LOG_ERR, "XSLT transform failed");
                 return HTTP_INTERNAL_SERVER_ERROR;
         }
@@ -587,6 +594,7 @@ http_status_code_t response_xslpost(int sock, url_t *u)
                 if (sqltoxml(db, sql, filter, &xml, 1) != 0) {
                         free(xsl);
                         free(sql);
+                        free_db(db);
                         return HTTP_INTERNAL_SERVER_ERROR;
                 }
                 free(sql);
@@ -608,6 +616,7 @@ http_status_code_t response_xslpost(int sock, url_t *u)
                                 syslog(LOG_ERR, "XSLT transform failed");
                                 free(xsl);
                                 free(resultxml);
+                                free_db(db);
                                 return HTTP_INTERNAL_SERVER_ERROR;
                         }
                         mime = MIME_HTML;
@@ -623,6 +632,7 @@ http_status_code_t response_xslpost(int sock, url_t *u)
         if (asprintf(&r, RESPONSE_200, config->serverstring, headers, xml) == -1)
         {
                 free(xml);
+                free_db(db);
                 return HTTP_INTERNAL_SERVER_ERROR;
         }
         free(headers);
@@ -631,6 +641,7 @@ http_status_code_t response_xslpost(int sock, url_t *u)
         respond(sock, r);
         free(r);
         if (config->pipelining != 0) db_disconnect(db);
+        free_db(db);
 
         syslog(LOG_DEBUG, "xsltpost complete");
 
@@ -658,7 +669,7 @@ http_status_code_t response_xslt(int sock, url_t *u)
         }
 
         /* ensure we have a valid database */
-        if (!(db = getdb(u->db))) {
+        if (!(db = getdbv(u->db))) {
                 syslog(LOG_ERR, "db '%s' not in config", u->db);
                 return HTTP_INTERNAL_SERVER_ERROR;
         }
@@ -666,6 +677,7 @@ http_status_code_t response_xslt(int sock, url_t *u)
         /* ensure we have some sql to work with */
         if (!(sql = getsql(u->view))) {
                 syslog(LOG_ERR, "sql '%s' not in config", u->view);
+                free_db(db);
                 return HTTP_INTERNAL_SERVER_ERROR;
         }
 
@@ -673,6 +685,7 @@ http_status_code_t response_xslt(int sock, url_t *u)
         if (!request->nofilter) {
                 filter = get_element(&err);
                 if (err != 0) {
+                        free_db(db);
                         return err;
                 }
         }
@@ -681,6 +694,7 @@ http_status_code_t response_xslt(int sock, url_t *u)
         if (sqltoxml(db, sql, filter, &xml, 1) != 0) {
                 free(sql);
                 free(xml);
+                free_db(db);
                 return HTTP_INTERNAL_SERVER_ERROR;
         }
 
@@ -692,10 +706,12 @@ http_status_code_t response_xslt(int sock, url_t *u)
         syslog(LOG_DEBUG, "Performing XSLT Transformation");
         if (xmltransform(xsl, xml, &html, NULL) != 0) {
                 free(xsl); free(xml);
+                free_db(db);
                 syslog(LOG_ERR, "XSLT transform failed");
                 return HTTP_BAD_REQUEST;
         }
         free(xsl); free(xml);
+        free_db(db);
 
         /* build response */
         asprintf(&headers,"%s\nContent-Length: %i",MIME_HTML,(int)strlen(html));

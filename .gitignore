@@ -13,3 +13,4 @@ libb64.a
 src/cov-int/
 src/gladd.tgz
 src/model.c
+src/build.sh

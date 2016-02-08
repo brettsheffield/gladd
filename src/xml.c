@@ -225,9 +225,11 @@ void replacevars(char **target, char *url)
         char *tmp;
 
 	/* do $0, $1, ... $n url path replacements */
-        tokens = tokenize(&toknum, &url, "/");
+        tmp = strdup(url);
+        tokens = tokenize(&toknum, &tmp, "/");
         replace_tokens(target, tokens, toknum, "$", 1);
         free(tokens);
+        free(tmp);
 
         if (request) {
 		char *host = http_get_header(request, "Host");

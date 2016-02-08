@@ -150,6 +150,7 @@ int     add_user (char *value);
 void    free_acls();
 void    free_auth();
 void    free_config();
+void    free_db(db_t *db);
 void    free_dbs();
 void    free_groups(group_t *g);
 void    free_keyval(keyval_t *h);

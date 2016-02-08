@@ -404,15 +404,17 @@ http_status_code_t response_sqlview(int sock, url_t *u)
         int err = 0;
         db_t *db = NULL;
 
-        if (!(db = getdb(u->db))) {
+        if (!(db = getdbv(u->db))) {
                 syslog(LOG_ERR, "db '%s' not in config", u->db);
+                free_db(db);
                 return HTTP_INTERNAL_SERVER_ERROR;
         }
 
         /* fetch element id as filter, if applicable */
-        if (!request->nofilter) { 
+        if (!request->nofilter) {
                 filter = get_element(&err);
                 if (err != 0) {
+                        free_db(db);
                         return err;
                 }
         }
@@ -421,12 +423,14 @@ http_status_code_t response_sqlview(int sock, url_t *u)
                 if (filter == NULL) {
                         /* POST to collection => create */
                         if (db_insert(db, u->view, request->data) != 0) {
+                                free_db(db);
                                 return HTTP_INTERNAL_SERVER_ERROR;
                         }
                 }
                 else {
                         /* TODO: POST to element => update */
                         syslog(LOG_ERR, "POST to element not implemented");
+                        free_db(db);
                         return HTTP_INTERNAL_SERVER_ERROR;
                 }
         }
@@ -437,10 +441,12 @@ http_status_code_t response_sqlview(int sock, url_t *u)
         }
         if (sqltoxml(db, sql, filter, &xml, 1) != 0) {
                 free(sql);
+                free_db(db);
                 free(xml);
                 return HTTP_INTERNAL_SERVER_ERROR;
         }
         free(sql);
+        free_db(db);
         asprintf(&headers,"%s\nContent-Length: %i",MIME_XML,(int)strlen(xml));
         if (asprintf(&r, RESPONSE_200, config->serverstring, headers, xml) == -1)
         {
@@ -1374,6 +1380,38 @@ field_t * get_element(int *err) {
                 syslog(LOG_DEBUG, "Element id: %s", filter->fvalue);
         }
         return filter;
+}
+
+/*
+ * return a pointer to a copy of this db
+ * after performing variable substitutions.
+ * free with free_db() after use.
+ */
+db_t *getdbv(char *alias)
+{
+        db_t *db;
+        db_t *dbs;
+        dbs = getdb(alias);
+        db = calloc(1, sizeof(db_t));
+        db->alias = strdup(dbs->alias);
+        db->type = strdup(dbs->type);
+        if (dbs->host) {
+                db->host = strdup(dbs->host);
+                replacevars(&db->host, request->res);
+        }
+        if (dbs->db) {
+                db->db = strdup(dbs->db);
+                replacevars(&db->db, request->res);
+        }
+        if (dbs->user) {
+                db->user = strdup(dbs->user);
+                replacevars(&db->user, request->res);
+        }
+        if (dbs->pass) {
+                db->pass = strdup(dbs->pass);
+                replacevars(&db->pass, request->res);
+        }
+        return db;
 }
 
 size_t rcv(int sock, void *data, size_t len, int flags)

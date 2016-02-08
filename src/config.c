@@ -545,6 +545,19 @@ void free_config()
 }
 
 /* free database struct */
+void free_db(db_t *d)
+{
+        free(d->alias);
+        free(d->type);
+        free(d->host);
+        free(d->db);
+        free(d->user);
+        free(d->pass);
+        free(d);
+        d = NULL;
+}
+
+/* free database structs in config */
 void free_dbs()
 {
         db_t *d;

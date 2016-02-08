@@ -34,6 +34,7 @@ typedef enum {
 } handler_result_t;
 
 void *get_in_addr(struct sockaddr *sa);
+db_t   *getdbv(char *alias);
 void handle_connection(int sock, struct sockaddr_storage their_addr);
 handler_result_t handle_request(int sock, char *s);
 size_t rcv(int sock, void *data, size_t len, int flags);

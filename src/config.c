@@ -547,6 +547,7 @@ void free_config()
 /* free database struct */
 void free_db(db_t *d)
 {
+        if (d == NULL) return;
         free(d->alias);
         free(d->type);
         free(d->host);

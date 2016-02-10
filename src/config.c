@@ -995,7 +995,7 @@ int process_config_file(char *configfile)
                 lc++;
                 if (process_config_line(line) < 0) {
                         printf("Error in line %i of %s.\n", lc, configfile);
-                        ret = 0;
+                        ret = -1;
                 }
         }
 
@@ -1027,7 +1027,7 @@ int read_config(char *configfile)
 	asprintf(&domain, "*");
 	asprintf(&docroot, "/");
 
-        if (!process_config_file(configfile))
+        if (process_config_file(configfile) < 0)
                 return 1;
 
         /* generate random secretkey if none set */
@@ -1051,7 +1051,7 @@ int read_config(char *configfile)
 
         /* set syslog mask */
         setlogmask(LOG_UPTO((config->debug) ? LOG_DEBUG : LOG_INFO));
-        
+
         return retval;
 }
 

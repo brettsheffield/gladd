@@ -65,11 +65,11 @@ char *test_config_open_success()
         return 0;
 }
 
-/* ensure failing to open config returns an error */
+/* ensure failing to open config returns 0 (not an error) */
 char *test_config_open_fail()
 {
-        mu_assert("Ensure failure to open file returns error", 
-                read_config("fake.conf") == 1);
+        mu_assert("Ensure failure to open file returns zero",
+                read_config("fake.conf") == 0);
         return 0;
 }
 

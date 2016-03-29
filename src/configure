@@ -4323,6 +4323,9 @@ then
 
 	git=-D_GIT
 
+else
+	git=" "
+
 fi
 
 # Checks for header files.

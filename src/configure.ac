@@ -231,6 +231,8 @@ if test "$git" == "1"
 then
         AC_SUBST(lgit2, -lgit2)
 	AC_SUBST(git, -D_GIT)
+else
+	AC_SUBST(git, " ")
 fi
 
 # Checks for header files.

@@ -502,15 +502,16 @@ int check_auth_cookie(http_request_t *r, auth_t *a)
 
         /* find the first cookie called SID, ignore any others */
         int p;
-        for (p = 0; p < strlen(cookie)-80; p++) {
+        int l = strlen(cookie);
+        for (p = 0; p < l-80; p++) {
                 if (strncmp(cookie+p, "SID=", 4) == 0)
                         break;
         }
-        if (p == strlen(cookie)-80) {
+        if (p == l-80) {
                 syslog(LOG_DEBUG, "SID Session cookie not found");
                 return HTTP_UNAUTHORIZED;
         }
-        char *tmp = malloc(strlen(cookie));
+        char *tmp = malloc(l);
 	errno = 0;
         int ret = sscanf(cookie+p, "SID=%[^;]", tmp);
 	if (errno != 0) {
@@ -539,8 +540,8 @@ int check_auth_cookie(http_request_t *r, auth_t *a)
 	}
 
         /* check cookie is valid */
-        char *username = malloc(strlen(cookie)+1);
-        char *nonce = malloc(strlen(cookie)+1);
+        char *username = malloc(l+1);
+        char *nonce = malloc(l+1);
         long timestamp;
         if (sscanf(clearcookie, "%s %li %s",
         username, &timestamp, nonce) != 3)

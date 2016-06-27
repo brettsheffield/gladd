@@ -503,6 +503,10 @@ int check_auth_cookie(http_request_t *r, auth_t *a)
         /* find the first cookie called SID, ignore any others */
         int p;
         int l = strlen(cookie);
+        if (l < 80) {
+                syslog(LOG_DEBUG, "cookie not found");
+                return HTTP_UNAUTHORIZED;
+        }
         for (p = 0; p < l-80; p++) {
                 if (strncmp(cookie+p, "SID=", 4) == 0)
                         break;

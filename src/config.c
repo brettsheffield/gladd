@@ -758,7 +758,11 @@ void handle_url_static(char *type, char params[LINE_MAX])
                         newurl->url = strdup(url);
                         newurl->domain = strdup(domain);
                 }
-                asprintf(&newurl->path, "%s/%s", docroot, path);
+                if (strcmp(type, "rewrite") == 0) {
+                        asprintf(&newurl->path, "%s", path);
+                } else {
+                        asprintf(&newurl->path, "%s/%s", docroot, path);
+                }
                 newurl->db = NULL;
                 newurl->view = NULL;
                 newurl->next = NULL;

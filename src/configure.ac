@@ -153,7 +153,7 @@ then
 	AC_MSG_NOTICE([disabling ldif support])
 	AC_SUBST(ldif, -D_NLDIF)
 else
-	AC_CHECK_LIB([ldif],[ldap_parse_ldif_record],
+	AC_CHECK_LIB([ldap],[ldap_parse_ldif_record],
 	,
 		AC_MSG_WARN([ldif not found - disabling])
 		AC_SUBST(ldif, -D_NLDIF)

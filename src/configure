@@ -4013,13 +4013,13 @@ $as_echo "$as_me: disabling ldif support" >&6;}
 	ldif=-D_NLDIF
 
 else
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for ldap_parse_ldif_record in -lldif" >&5
-$as_echo_n "checking for ldap_parse_ldif_record in -lldif... " >&6; }
-if ${ac_cv_lib_ldif_ldap_parse_ldif_record+:} false; then :
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for ldap_parse_ldif_record in -lldap" >&5
+$as_echo_n "checking for ldap_parse_ldif_record in -lldap... " >&6; }
+if ${ac_cv_lib_ldap_ldap_parse_ldif_record+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   ac_check_lib_save_LIBS=$LIBS
-LIBS="-lldif  $LIBS"
+LIBS="-lldap  $LIBS"
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -4039,22 +4039,22 @@ return ldap_parse_ldif_record ();
 }
 _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_ldif_ldap_parse_ldif_record=yes
+  ac_cv_lib_ldap_ldap_parse_ldif_record=yes
 else
-  ac_cv_lib_ldif_ldap_parse_ldif_record=no
+  ac_cv_lib_ldap_ldap_parse_ldif_record=no
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 LIBS=$ac_check_lib_save_LIBS
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_ldif_ldap_parse_ldif_record" >&5
-$as_echo "$ac_cv_lib_ldif_ldap_parse_ldif_record" >&6; }
-if test "x$ac_cv_lib_ldif_ldap_parse_ldif_record" = xyes; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_ldap_ldap_parse_ldif_record" >&5
+$as_echo "$ac_cv_lib_ldap_ldap_parse_ldif_record" >&6; }
+if test "x$ac_cv_lib_ldap_ldap_parse_ldif_record" = xyes; then :
   cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBLDIF 1
+#define HAVE_LIBLDAP 1
 _ACEOF
 
-  LIBS="-lldif $LIBS"
+  LIBS="-lldap $LIBS"
 
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: ldif not found - disabling" >&5

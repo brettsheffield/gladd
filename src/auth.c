@@ -132,6 +132,13 @@ int check_auth(http_request_t *r)
                                         syslog(LOG_DEBUG, "cookie");
                                         r->cookie = 1;
                                 }
+                                else if (strncmp(a->auth, "sendheader", 10) == 0) {
+                                        syslog(LOG_DEBUG, "sendheader");
+                                        char *t4;
+                                        sscanf(a->full, "%*s %*s %*s %*[^:]:%m[^\n]",&t4);
+                                        http_response_header_add(t4);
+                                        free(t4);
+                                }
                                 else if (strcmp(a->auth, "nocache") == 0) {
                                         syslog(LOG_DEBUG, "nocache");
                                         r->nocache = 1;

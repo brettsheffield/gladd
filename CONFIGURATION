@@ -305,6 +305,9 @@ control	- allow, deny, require, sufficient, params
 		   	cached.
 		   cookie:session - set a session cookie in response, if auth
 		   	succeeds.
+                   sendheader:<headerstring> - send an arbitrary header string
+                        with the response. eg.
+                        sendheader:Content-Security-Policy: frame-ancestors 'none'
 	optional => the acl is checked as normal, but the outcome does not
 		    directly affect the outcome of the acl stack.  This is 
 		    mostly useful in conjunction with a success/fail argument.

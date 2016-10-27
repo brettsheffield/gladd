@@ -75,6 +75,7 @@ typedef struct http_request_t {
         int uuid;               /* 0 (default), 1 = use uuid for uploads */
         keyval_t *headers;      /* client request headers                */
         keyval_t *data;         /* client request data                   */
+        keyval_t *serverheaders;/* additional server response headers    */
 } http_request_t;
 
 extern http_request_t *request;
@@ -95,6 +96,7 @@ keyval_t *http_set_keyval (char *key, char *value);
 void http_response(int sock, int code);
 void http_response_xml(int sock, int code, char *respcode, char *resptext);
 void http_response_headers(int sock, int code, int len, char *mime);
+void http_response_header_add(char *header);
 void http_response_full(int sock, int code, char *mime, char *body);
 char *http_get_header(http_request_t *r, char *key);
 void http_flush_buffer();

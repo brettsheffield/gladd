@@ -1504,5 +1504,12 @@ void set_headers(char **r)
                 http_insert_header(r, "Pragma: no-cache");
                 http_insert_header(r, "Expires: 0");
         }
+        if (request->serverheaders) {
+                keyval_t *h = request->serverheaders;
+                while (h != NULL) {
+                        http_insert_header(r, h->value);
+                        h = h->next;
+                }
+        }
         syslog(LOG_DEBUG, "set_headers() done");
 }

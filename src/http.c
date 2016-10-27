@@ -774,6 +774,24 @@ void http_response_headers(int sock, int code, int len, char *mime)
         free(r);
 }
 
+/* store additional server response header */
+void http_response_header_add(char *header)
+{
+        keyval_t *k;
+        k = calloc(1, sizeof(keyval_t));
+        k -> value = strdup(header);
+        keyval_t *h = request->serverheaders;
+        if (h == NULL) {
+                request->serverheaders = k;
+        }
+        else {
+                while (h->next != NULL) {
+                        h = h->next;
+                }
+                h->next = k;
+        }
+}
+
 /* output full response including body */
 void http_response_full(int sock, int code, char *mime, char *body)
 {
@@ -911,6 +929,7 @@ int http_validate_headers(http_request_t *r, http_status_code_t *err)
 void free_request(http_request_t **r)
 {
         if (r) {
+                free_keyval((*r)->serverheaders);
                 free_keyval((*r)->headers);
                 free_keyval((*r)->data);
                 free((*r)->httpv);

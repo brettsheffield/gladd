@@ -106,6 +106,7 @@ int add_acl (char *value)
                 newacl->params = NULL;
                 newacl->skipon = strndup(skipon, LINE_MAX);
                 newacl->skip = skip;
+                newacl->full = strdup(value);
                 newacl->next = NULL;
         }
         else if ((strcmp(type, "require") == 0) ||
@@ -120,6 +121,7 @@ int add_acl (char *value)
                 newacl->params = strndup(authtype, LINE_MAX);
                 newacl->skipon = strndup(skipon, LINE_MAX);
                 newacl->skip = skip;
+                newacl->full = strdup(value);
                 newacl->next = NULL;
         }
         else {
@@ -477,6 +479,7 @@ void free_acls()
                 free(a->auth);
                 free(a->params);
                 free(a->skipon);
+                free(a->full);
                 tmp = a;
                 a = a->next;
                 free(tmp);

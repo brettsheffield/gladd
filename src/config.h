@@ -38,6 +38,7 @@ typedef struct acl_t {
         char *auth;
         char *params;
         char *skipon;
+        char *full;
         int  skip;
         struct acl_t *next;
 } acl_t;

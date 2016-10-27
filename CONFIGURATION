@@ -76,6 +76,8 @@ ssl
 1 = on, allow SSLv2,SSLv3,tls
 2 = on, SSLv2 disabled
 3 = on, SSLv3 disabled (TLS 1.x only)
+4 = on, TLSv1.0 disabled (TLS 1.1+ only)
+5 = on, TLSv1.1 disabled (TLS 1.2+ only)
 
 Turn on to enable ssl support.  Requires that gladd be configured and built
 with ssl support.  Gladd has support for both gnutls and openssl.  Of the two,

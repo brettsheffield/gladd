@@ -894,7 +894,7 @@ int process_config_line(char *line)
                 }
                 else if (strcmp(key, "ssl") == 0) {
                         i = set_config_long(&config_new->ssl,
-                                                "ssl", i, 0, 3);
+                                                "ssl", i, 0, 5);
                 }
                 else if (strcmp(key, "uploadmax") == 0) {
                         i = set_config_long(&config_new->uploadmax,

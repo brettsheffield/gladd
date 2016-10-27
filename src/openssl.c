@@ -210,6 +210,14 @@ void ssl_setup()
                 SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv3);
                 syslog(LOG_DEBUG, "Disabling SSLv3 ciphers");
         }
+        if (config->ssl > 3) {
+                SSL_CTX_set_options(ctx, SSL_OP_NO_TLSv1);
+                syslog(LOG_DEBUG, "Disabling TLSv1.0 ciphers");
+        }
+        if (config->ssl > 4) {
+                SSL_CTX_set_options(ctx, SSL_OP_NO_TLSv1_1);
+                syslog(LOG_DEBUG, "Disabling TLSv1.1 ciphers");
+        }
         generate_dh_params();
         ret = SSL_CTX_use_certificate_chain_file(ctx, config->sslcert);
         if (ret != 1) {

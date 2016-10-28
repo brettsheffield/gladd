@@ -30,6 +30,7 @@
 #include <openssl/blowfish.h>
 
 #define DEFAULT_CONFIG "/etc/gladd.conf"
+#define SSLCIPHERS_DEFAULT "ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:RSA+AESGCM:RSA+AES:!aNULL:!MD5:!DSS"
 
 typedef struct acl_t {
         char *type; /* allow or deny */
@@ -68,6 +69,7 @@ typedef struct config_t {
         char *sslkey;
         char *sslcert;
         char *sslcrl;
+        char *sslciphers;
         char *secretkey;     /* secret key used for en/decrypting cookies */
         BF_KEY ctx;          /* blowfish context */
         long uploadmax;      /* Max size of upload files (MB) 0=unlimited */

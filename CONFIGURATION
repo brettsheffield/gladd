@@ -102,6 +102,14 @@ ssl-crl
 (required for ssl=1)
 Full path to your SSL certificate revocation list.
 
+ssl-ciphers
+(optional)
+list of ciphers to support in openssl-readable format
+eg.
+ssl-ciphers ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:RSA+AESGCM:RSA+AES:!aNULL:!MD5:!DSS
+(This is the default)
+
+
 uploadmax
 Max size (MB) of file upload to accept.
 Default: 0 (unlimited)

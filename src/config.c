@@ -525,6 +525,8 @@ void free_config()
         free(config->sslcrl);
         config->sslcrl = NULL;
         free(config->secretkey);
+        config->sslciphers = NULL;
+        free(config->sslciphers);
         config->secretkey = NULL;
         free(config->serverstring);
         config->serverstring = NULL;
@@ -968,6 +970,10 @@ int process_config_line(char *line)
                 else if (strcmp(key, "ssl-crl") == 0) {
                         i = set_ssl(key, value);
                 }
+                else if (strcmp(key, "ssl-ciphers") == 0) {
+                        free(config->sslciphers);
+                        i = asprintf(&config->sslciphers, "%s", value);
+                }
                 else if (strcmp(key, "secretkey") == 0) {
                         i = asprintf(&config->secretkey, "%s", value);
                 }
@@ -1069,6 +1075,7 @@ int set_config_defaults()
         config = &config_default;
 
         asprintf(&config->serverstring, "%s v%s", PROGRAM, VERSION);
+        asprintf(&config->sslciphers, "%s", SSLCIPHERS_DEFAULT);
 
         config->acls = NULL;
         config->auth = NULL;

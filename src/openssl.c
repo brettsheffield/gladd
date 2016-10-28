@@ -218,6 +218,10 @@ void ssl_setup()
                 SSL_CTX_set_options(ctx, SSL_OP_NO_TLSv1_1);
                 syslog(LOG_DEBUG, "Disabling TLSv1.1 ciphers");
         }
+        if (SSL_CTX_set_cipher_list(ctx, config->sslciphers) != 1) {
+                syslog(LOG_ERR, "Failed to set SSL ciphers");
+                _exit(EXIT_FAILURE);
+        }
         generate_dh_params();
         ret = SSL_CTX_use_certificate_chain_file(ctx, config->sslcert);
         if (ret != 1) {

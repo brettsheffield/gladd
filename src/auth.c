@@ -132,6 +132,13 @@ int check_auth(http_request_t *r)
                                         syslog(LOG_DEBUG, "cookie");
                                         r->cookie = 1;
                                 }
+                                else if ((strncmp(a->auth, "querystring:", 12) == 0)
+                                        && (r->querystr))
+                                {
+                                                syslog(LOG_DEBUG, "querystring");
+                                                sscanf(a->auth, "querystring:%i", &i);
+                                                return i;
+                                }
                                 else if (strncmp(a->auth, "sendheader", 10) == 0) {
                                         syslog(LOG_DEBUG, "sendheader");
                                         char *t4;

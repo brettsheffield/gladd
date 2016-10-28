@@ -48,6 +48,7 @@ config_t config_default = {
         .keepalive      = 115,
         .sessiontimeout = 300,
         .ssl            = 0,
+        .sslcompress    = 0,
         .xforward       = 0,
         .uploadmax      = 0,
         .urldefault     = "index.html"
@@ -900,6 +901,10 @@ int process_config_line(char *line)
                 else if (strcmp(key, "ssl") == 0) {
                         i = set_config_long(&config_new->ssl,
                                                 "ssl", i, 0, 5);
+                }
+                else if (strcmp(key, "ssl-compression") == 0) {
+                        i = set_config_long(&config_new->sslcompress,
+                                                "ssl-compression", i, 0, 1);
                 }
                 else if (strcmp(key, "uploadmax") == 0) {
                         i = set_config_long(&config_new->uploadmax,

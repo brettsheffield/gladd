@@ -65,6 +65,7 @@ typedef struct config_t {
         long sessiontimeout; /* session timeout (s) */
         char *serverstring;
         long ssl;            /* 0 = disable ssl (default), 1 = enable ssl */
+        long sslcompress;    /* 0 = disable ssl compression (default), 1 = enable */
         char *sslca;
         char *sslkey;
         char *sslcert;

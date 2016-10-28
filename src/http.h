@@ -41,6 +41,7 @@ typedef enum {
         HTTP_METHOD_NOT_ALLOWED         = 405,
         HTTP_LENGTH_REQUIRED            = 411,
         HTTP_UNSUPPORTED_MEDIA_TYPE     = 415,
+        HTTP_TEAPOT                     = 418,
         HTTP_INTERNAL_SERVER_ERROR      = 500,
         HTTP_NOT_IMPLEMENTED            = 501,
         HTTP_VERSION_NOT_SUPPORTED      = 505

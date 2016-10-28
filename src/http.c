@@ -84,6 +84,7 @@ struct http_status httpcode[] = {
         { 414, "Request-URI Too Long" },
         { 415, "Unsupported Media Type" },
         { 416, "Requested Range Not Satisfiable" },
+        { 418, "I'm a teapot" },
         { 417, "Expectation Failed" },
         { 500, "Internal Server Error" },
         { 505, "HTTP Version Not Supported" }

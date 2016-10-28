@@ -865,7 +865,7 @@ http_status_code_t http_response_proxy(int sock, url_t *u)
 struct http_status get_status(int code)
 {
         int x;
-        struct http_status hcode;
+        struct http_status hcode = { code, "Unknown" };
 
         for (x = 0; x < HTTPKEYS; x++) {
                 if (httpcode[x].code == code)

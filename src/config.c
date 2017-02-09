@@ -764,7 +764,7 @@ void handle_url_static(char *type, char params[LINE_MAX])
                         newurl->url = strdup(url);
                         newurl->domain = strdup(domain);
                 }
-                if (strcmp(type, "rewrite") == 0) {
+                if ((strcmp(type, "rewrite") == 0) || (strcmp(type, "upload") == 0)) {
                         asprintf(&newurl->path, "%s", path);
                 } else {
                         asprintf(&newurl->path, "%s/%s", docroot, path);

@@ -125,7 +125,7 @@ clean:
 
 test:
 	make clean || true
-	make && ./${PROGRAM}_test || true
+	make && ./${PROGRAM}_test
 
 leakcheck:
 	make clean || true

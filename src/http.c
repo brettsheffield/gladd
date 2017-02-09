@@ -264,7 +264,10 @@ url_t *http_match_url(http_request_t *r)
 {
         url_t *u;
         char *ip;
-        char *host = http_get_header(request, "Host");
+        char *host = http_get_header(r, "Host");
+
+	if (host == NULL)
+		asprintf(&host, "*");
 
         syslog(LOG_DEBUG, "Host requested: %s", host);
 

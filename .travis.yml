@@ -1,2 +1,6 @@
 language: c
 script: cd src && ./configure --with-openssl && make test
+addons:
+  apt:
+    packages:
+    - uuid-dev

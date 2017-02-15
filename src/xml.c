@@ -3,7 +3,7 @@
  *
  * this file is part of GLADD
  *
- * Copyright (c) 2012-2016 Brett Sheffield <brett@gladserv.com>
+ * Copyright (c) 2012-2017 Brett Sheffield <brett@gladserv.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -233,18 +233,19 @@ void replacevars(char **target, char *url)
 
         if (request) {
 		char *host = http_get_header(request, "Host");
+		if (host) {
+			/* do $d0, $d1, ... $n domain part replacements */
+			char *h = strdup(host);
+			tokens = tokenize(&toknum, &h, ".");
+			replace_tokens(target, tokens, toknum, "$d", 0);
+			free(tokens);
+			free(h);
 
-		/* do $d0, $d1, ... $n domain part replacements */
-		char *h = strdup(host);
-		tokens = tokenize(&toknum, &h, ".");
-		replace_tokens(target, tokens, toknum, "$d", 0);
-		free(tokens);
-		free(h);
-
-		/* $fqdn */
-		tmp = replaceall(*target, "$fqdn", host);
-		*target = strdup(tmp);
-		free(tmp);
+			/* $fqdn */
+			tmp = replaceall(*target, "$fqdn", host);
+			*target = strdup(tmp);
+			free(tmp);
+		}
 
 		/* replace occurances of $user with username */
                 if (request->authuser) {

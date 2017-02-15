@@ -1,5 +1,6 @@
 # README
 
+[![Build Status](https://travis-ci.org/brettsheffield/gladd.svg?branch=master)](https://travis-ci.org/brettsheffield/gladd)
 <a href="https://scan.coverity.com/projects/2676">
   <img alt="Coverity Scan Build Status"
          src="https://scan.coverity.com/projects/2676/badge.svg"/>

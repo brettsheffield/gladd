@@ -86,7 +86,7 @@ with GnuTLS 2.x and would not recommend its use.  If you enable ssl, you will
 require ssl-ca, ssl-key, ssl-cert and ssl-crl also.
 
 ssl-ca
-(required for ssl=1)
+(optional)
 Full path to your CA certificates file.
 eg. /etc/ssl/certs/ca-certificates.crt
 
@@ -99,7 +99,7 @@ ssl-cert
 Full path to your SSL certificate.
 
 ssl-crl
-(required for ssl=1)
+(optional)
 Full path to your SSL certificate revocation list.
 
 ssl-ciphers

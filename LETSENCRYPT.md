@@ -1,6 +1,6 @@
 # Lets Encrypt
 
-Unless you're just testing, gladd should always run with TLS encryption.  An unencrypted API is generally considered a Bad Thing.  Generating certificates with [Let's Encrypt](letsencrypt.org) is quick and easy.
+Unless you're just testing, gladd should always run with TLS encryption.  An unencrypted API is generally considered a Bad Thing.  Generating certificates with [Let's Encrypt](https://letsencrypt.org) is quick and easy.
 
 There are a couple of ways to do this.
 

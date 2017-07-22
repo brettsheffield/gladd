@@ -3,7 +3,7 @@
  *
  * this file is part of GLADD
  *
- * Copyright (c) 2012, 2013 Brett Sheffield <brett@gladserv.com>
+ * Copyright (c) 2012, 2013, 2017 Brett Sheffield <brett@gladserv.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,8 +41,6 @@ char *test_args()
                 argue(3, "shutdown") != 0);
         mu_assert("Ensure argue() accepts stop",argue(2, "stop") == 0);
         mu_assert("Ensure argue() accepts start",argue(2, "start") == 0);
-        mu_assert("Ensure argue() requires at least one argument",
-                argue(1, NULL) == -1);
 
         return 0;
 }

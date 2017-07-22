@@ -3,7 +3,7 @@
  *
  * this file is part of GLADD
  *
- * Copyright (c) 2012, 2013 Brett Sheffield <brett@gladserv.com>
+ * Copyright (c) 2012, 2013, 2017 Brett Sheffield <brett@gladserv.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,17 +31,19 @@ int g_signal = 0;
 
 int argue(int argc, char *arg)
 {
-        if (argc == 2) {
+        if (argc) {
                 if (strcmp(arg, "start") == 0) {
                         return 0;
                 }
                 else if (strcmp(arg, "reload") == 0) {
+	                if (argc > 2) goto argue_solo;
                         g_signal = SIGHUP;
                         return 0;
                 }
                 else if ((strcmp(arg, "shutdown") == 0)
                        ||(strcmp(arg, "stop") == 0)) 
                 {
+	                if (argc > 2) goto argue_solo;
                         g_signal = SIGTERM;
                         return 0;
                 }
@@ -52,15 +54,21 @@ int argue(int argc, char *arg)
                 else if ((strcmp(arg, "--version") == 0) ||
                          (strcmp(arg, "-V") == 0))
                 {
+	                help();
+	                return 0;
+		}
+                else if ((strcmp(arg, "--version") == 0) ||
+                         (strcmp(arg, "-V") == 0))
+                {
                         printf("%s\n", VERSION);
                 }
                 else {
                         help();
+                        return -1;
                 }
         }
-        else {
-                fprintf(stderr, "%s must be a solo argument\n", arg);
-        }
+argue_solo:
+        fprintf(stderr, "%s must be a solo argument\n", arg);
         return -1;
 }
 
@@ -68,7 +76,7 @@ int process_args(int argc, char **argv)
 {
         int i;
 
-        if (argc != 2) {
+        if (argc == 1) {
                 help();
                 return -1;
         }

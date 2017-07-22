@@ -1,5 +1,4 @@
 FEATURE: ldap url support
-FEATURE: domains (VirtualHost)
 FEATURE: add more acl syntax tests
 FEATURE: add --config command line option
 FEATURE: Align debug values with syslog
@@ -7,4 +6,3 @@ FEATURE: send Allow header with 405 Method Not Allowed
 FEATURE: acl allow / deny by IP
 FEATURE: verify dbs in sqlurls are defined somewhere in config
 FEATURE: differentiate between files and directories for static url paths
-BUG: ipv6 listening not working by default (enable dual stack)

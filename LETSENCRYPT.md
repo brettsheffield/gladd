@@ -9,10 +9,7 @@ There are a couple of ways to do this.
 
 This is the easiest method.  As this runs on port 80, it does not interfere with our live gladd on port 443 and means we don't have to leave anything listening permanently on port 80.
 
-```
- sudo certbot certonly --standalone --preferred-challenges http -d example.com
-
-```
+`sudo certbot certonly --standalone --preferred-challenges http -d example.com`
 
 
 ## Using gladd
@@ -35,6 +32,7 @@ and then call certbot:
 ## Configuring gladd to Use Let's Encrypt Certs
 
 Stop gladd:
+
 `gladd stop`
 
 Add some lines to /etc/gladd.conf:
@@ -46,6 +44,7 @@ ssl-cert /etc/letsencrypt/live/example.com/fullchain.pem
 ```
 
 Start gladd:
+
 `gladd start`
 
 

@@ -3,7 +3,7 @@
  *
  * this file is part of GLADD
  *
- * Copyright (c) 2012-2016 Brett Sheffield <brett@gladserv.com>
+ * Copyright (c) 2012-2017 Brett Sheffield <brett@gladserv.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -279,6 +279,16 @@ int add_db (char *value)
                 newdb->conn=NULL;
                 newdb->next=NULL;
         }
+        else if (strcmp(type, "lmdb") == 0) {
+                newdb->alias = strndup(alias, LINE_MAX);
+                newdb->type = strndup(type, LINE_MAX);
+                newdb->host = strndup(host, LINE_MAX);
+                newdb->db = strndup(db, LINE_MAX);
+                newdb->user=NULL;
+                newdb->pass=NULL;
+                newdb->conn=NULL;
+                newdb->next=NULL;
+	}
         else {
                 fprintf(stderr, "Invalid database type\n");
                 return -1;
@@ -396,6 +406,9 @@ int add_url_handler(char *value)
                         handle_url_dynamic("git", params);
                 }
 #endif /* _GIT */
+                else if (strcmp(type, "keyval") == 0) {
+                        handle_url_dynamic("keyval", params);
+                }
                 else if (strcmp(type, "ldif") == 0) {
                         handle_url_dynamic("ldif", params);
                 }

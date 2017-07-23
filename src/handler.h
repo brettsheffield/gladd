@@ -3,7 +3,7 @@
  *
  * this file is part of GLADD
  *
- * Copyright (c) 2012-2016 Brett Sheffield <brett@gladserv.com>
+ * Copyright (c) 2012-2017 Brett Sheffield <brett@gladserv.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -47,12 +47,15 @@ void set_headers(char **r);
 #ifdef _GIT
 http_status_code_t response_git(int sock, url_t *u);
 #endif
+#ifndef _NGLADDB
+http_status_code_t response_keyval(int sock, url_t *u);
 #ifndef _NLDIF
 http_status_code_t response_ldif(int sock, url_t *u);
-#endif
-http_status_code_t response_plugin(int sock, url_t *u);
+#endif /* _NLDIF */
 http_status_code_t response_sqlview(int sock, url_t *u);
 http_status_code_t response_sqlexec(int sock, url_t *u);
+#endif /* _NGLADDB */
+http_status_code_t response_plugin(int sock, url_t *u);
 http_status_code_t response_static(int sock, url_t *u);
 http_status_code_t response_upload(int sock, url_t *u);
 http_status_code_t response_xml_plugin(int sock, url_t *u);

@@ -3,7 +3,7 @@
  *
  * this file is part of GLADD
  *
- * Copyright (c) 2012-2015 Brett Sheffield <brett@gladserv.com>
+ * Copyright (c) 2012-2017 Brett Sheffield <brett@gladserv.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -443,6 +443,13 @@ char *test_config_db()
 
         /* check next (tds db) */
         mu_assert("Test reading next db (tdb) from config", db = db->next);
+
+	/* lmdb */
+        mu_assert("Test reading next db (lmdb) from config", db = db->next);
+        mu_assert("Check db->alias", strcmp(db->alias, "lmdb0") == 0);
+        mu_assert("Check db->type", strcmp(db->type, "lmdb") == 0);
+        mu_assert("Check db->host", strcmp(db->host, "localhost") == 0);
+        mu_assert("Check db->db", strcmp(db->db, ".lmdb/test.mdb") == 0);
 
         /* ensure no more dbs */
         mu_assert("Ensure final db->next returns NULL", db->next == NULL);

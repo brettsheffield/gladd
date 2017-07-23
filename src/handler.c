@@ -3,7 +3,7 @@
  *
  * this file is part of GLADD
  *
- * Copyright (c) 2012-2016 Brett Sheffield <brett@gladserv.com>
+ * Copyright (c) 2012-2017 Brett Sheffield <brett@gladserv.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -277,6 +277,11 @@ handler_result_t handle_request(int sock, char *s)
 	}
 #endif /* _GIT */
 #ifndef _NGLADDB
+        else if (strcmp(u->type, "keyval") == 0) {
+		err = response_keyval(sock, u);
+                if (err != 0)
+                        http_response(sock, err);
+	}
 #ifndef _NLDIF
         else if (strcmp(u->type, "ldif") == 0) {
                 err = response_ldif(sock, u);
@@ -350,6 +355,73 @@ void respond (int fd, char *response)
 }
 
 #ifndef _NGLADDB
+http_status_code_t response_keyval(int sock, url_t *u)
+{
+	char *headers = NULL;
+	char *r = NULL;
+	int err = 0;
+	db_t *db = NULL;
+	keyval_t *kv;
+	int isconn = 0;
+
+	if (!(db = getdbv(u->db))) {
+		syslog(LOG_ERR, "db '%s' not in config", u->db);
+		free_db(db);
+		return HTTP_INTERNAL_SERVER_ERROR;
+	}
+
+	/* connect if we aren't already */
+	if (db->conn == NULL) {
+		if (db_connect(db) != 0) {
+			syslog(LOG_ERR, "Failed to connect to db on %s", db->host);
+			return -1;
+		}
+		isconn = 1;
+	}
+
+	/* do variable substitution */
+	kv = calloc(1, sizeof(keyval_t));
+	kv->key = strdup(u->view);
+	replacevars(&kv->key, request->res);
+	syslog(LOG_DEBUG, "fetching keyval: '%s'", kv->key);
+
+	/* fetch data */
+	if (db_fetch_keyval(db, kv) != EXIT_SUCCESS) {
+		syslog(LOG_ERR, "Error in db_fetch_key()");
+		free(kv->key);
+		free(kv);
+		err = HTTP_INTERNAL_SERVER_ERROR;
+		goto close_conn;
+	}
+	free_db(db);
+
+	if (kv->value == NULL) {
+		err = HTTP_NOT_FOUND;
+		goto close_conn;
+	}
+
+	asprintf(&headers,"%s\nContent-Length: %i",MIME_HTML,(int)strlen(kv->value));
+	if (asprintf(&r, RESPONSE_200, config->serverstring, headers, kv->value) == -1)
+	{
+		free(kv->key);
+		free(kv->value);
+		free(kv);
+		return HTTP_INTERNAL_SERVER_ERROR;
+	}
+	free(headers);
+	set_headers(&r); /* set any additional headers */
+	respond(sock, r);
+	free(kv->key);
+	free(kv->value);
+	free(kv);
+
+close_conn:
+	/* leave the connection how we found it */
+	if (isconn == 1)
+		db_disconnect(db);
+	return err;
+}
+
 #ifndef _NLDIF
 http_status_code_t response_ldif(int sock, url_t *u)
 {

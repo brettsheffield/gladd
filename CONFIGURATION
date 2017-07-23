@@ -171,7 +171,7 @@ db      db_test_my  my      localhost       gladd_test  myuser  mypass
 db      ldap2       ldap    ldap://ldap.example.com dc=example,dc=com myuser mypass
 
 <alias> - a convenient name to refer to this database as
-<type>  - pg=postgresql, my=mysql/mariadb, ldap=openldap, tds=sybase/sqlserver
+<type>  - pg=postgresql, my=mysql/mariadb, ldap=openldap, tds=sybase/sqlserver lmdb=lmdb
 <host>  - hostname or IP address of server to connect to
 <database> - the database to work with
 <username> / <password> - credentials to use.  Not supported for pg.
@@ -217,6 +217,14 @@ git
 serve files directly from git
 url git <method> <repo> <branch>
 url git GET /* /path/to/git/repo/.git master
+
+
+keyval
+
+fetch key/value data from database
+url keyval <method> <url> <database> <key>
+eg.
+url keyval GET /blog/* lmdb0 $1
 
 
 sqlview

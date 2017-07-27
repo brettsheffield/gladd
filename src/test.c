@@ -68,6 +68,7 @@ static char * all_tests()
         mu_run_test(test_config_open_success);
         mu_run_test(test_config_set);
         mu_run_test(test_config_read_url);
+        mu_run_test(test_config_read_template);
         mu_run_test(test_config_read_sql);
         mu_run_test(test_args);
 #ifndef _NAUTH

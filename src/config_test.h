@@ -3,7 +3,7 @@
  *
  * this file is part of GLADD
  *
- * Copyright (c) 2012, 2013 Brett Sheffield <brett@gladserv.com>
+ * Copyright (c) 2012, 2013, 2017 Brett Sheffield <brett@gladserv.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,6 +33,7 @@ char *test_config_open_fail();
 char *test_config_defaults();
 char *test_config_set();
 char *test_config_read_url();
+char *test_config_read_template();
 char *test_config_read_sql();
 char *test_config_add_acl_invalid();
 char *test_config_acl_allow_all();

@@ -220,9 +220,8 @@ char *test_config_read_url()
         url_t *u;
 
         mu_assert("Ensure urls are read from config", config->urls != NULL);
-        mu_assert("Ensure urls are read from config", 
+        mu_assert("Ensure type of first url is static",
                         strcmp(config->urls->type, "static") == 0);
-
         mu_assert("Reading 1st url from config", u = config->urls);
         mu_assert("Checking 1st url from config", 
                         strcmp(u->url, "/static/") == 0);
@@ -284,6 +283,12 @@ char *test_config_read_url()
         mu_assert("Ensure final url->next returns NULL", u->next == NULL);
 
         return 0;
+}
+
+char *test_config_read_template()
+{
+	mu_assert("Ensure templates are read from config", config->templates != NULL);
+	return 0;
 }
 
 /* test reading sql from config */

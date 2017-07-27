@@ -354,6 +354,31 @@ void respond (int fd, char *response)
         snd(fd, response, strlen(response), 0);
 }
 
+static int handler_fetch_keyval(db_t *db, url_t *u, keyval_t **k)
+{
+	keyval_t *kv = *k;
+
+	/* do variable substitution */
+	kv = calloc(1, sizeof(keyval_t));
+	kv->key = strdup(u->view);
+	replacevars(&kv->key, request->res);
+
+	/* fetch data */
+	if (db_fetch_keyval(db, kv) != EXIT_SUCCESS) {
+		syslog(LOG_ERR, "Error in db_fetch_key()");
+		free(kv->key);
+		free(kv);
+		return HTTP_INTERNAL_SERVER_ERROR;
+	}
+
+	if (kv->value == NULL) {
+		return HTTP_NOT_FOUND;
+	}
+	*k = kv;
+
+	return 0;
+}
+
 #ifndef _NGLADDB
 http_status_code_t response_keyval(int sock, url_t *u)
 {
@@ -361,8 +386,10 @@ http_status_code_t response_keyval(int sock, url_t *u)
 	char *r = NULL;
 	int err = 0;
 	db_t *db = NULL;
-	keyval_t *kv;
+	keyval_t *kv = NULL;
+	keyval_t *kvt = NULL;
 	int isconn = 0;
+	url_t *template = NULL;
 
 	if (!(db = getdbv(u->db))) {
 		syslog(LOG_ERR, "db '%s' not in config", u->db);
@@ -379,26 +406,21 @@ http_status_code_t response_keyval(int sock, url_t *u)
 		isconn = 1;
 	}
 
-	/* do variable substitution */
-	kv = calloc(1, sizeof(keyval_t));
-	kv->key = strdup(u->view);
-	replacevars(&kv->key, request->res);
-	syslog(LOG_DEBUG, "fetching keyval: '%s'", kv->key);
-
-	/* fetch data */
-	if (db_fetch_keyval(db, kv) != EXIT_SUCCESS) {
-		syslog(LOG_ERR, "Error in db_fetch_key()");
-		free(kv->key);
-		free(kv);
-		err = HTTP_INTERNAL_SERVER_ERROR;
+	/* fetch keyval */
+	if ((err = handler_fetch_keyval(db, u, &kv)) != 0) {
 		goto close_conn;
+	}
+
+	/* fetch template */
+	template = http_match_template(request);
+	if (template) {
+		syslog(LOG_DEBUG, "fetching template '%s'", template->view);
+		/* TODO: check database is the same as for url */
+		if ((err = handler_fetch_keyval(db, template, &kvt)) != 0) {
+			goto close_conn;
+		}
 	}
 	free_db(db);
-
-	if (kv->value == NULL) {
-		err = HTTP_NOT_FOUND;
-		goto close_conn;
-	}
 
 	asprintf(&headers,"%s\nContent-Length: %i",MIME_HTML,(int)strlen(kv->value));
 	if (asprintf(&r, RESPONSE_200, config->serverstring, headers, kv->value) == -1)

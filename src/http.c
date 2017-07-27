@@ -3,7 +3,7 @@
  *
  * this file is part of GLADD
  *
- * Copyright (c) 2012-2015 Brett Sheffield <brett@gladserv.com>
+ * Copyright (c) 2012-2017 Brett Sheffield <brett@gladserv.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -259,10 +259,8 @@ char *http_get_header(http_request_t *r, char *key)
         return NULL;
 }
 
-/* match requested url to config->urls */
-url_t *http_match_url(http_request_t *r)
+url_t *http_url_search(http_request_t *r, url_t *u)
 {
-        url_t *u;
         char *ip;
         char *host = http_get_header(r, "Host");
 
@@ -274,7 +272,6 @@ url_t *http_match_url(http_request_t *r)
         ip = (r->xforwardip) ? r->xforwardip : r->clientip;
 
         syslog(LOG_INFO, "[%s] %s %s\n", ip, r->method, r->res);
-        u = config->urls;
         while (u != NULL) {
                 if ((fnmatch(u->url, r->res, 0) == 0) &&
                          (fnmatch(u->domain, host, 0) == 0) &&
@@ -288,6 +285,27 @@ url_t *http_match_url(http_request_t *r)
         return u;
 }
 
+/* match requested url to config->urls */
+url_t *http_match_url(http_request_t *r)
+{
+	url_t *u = config->urls;
+	url_t *res = NULL;
+	res = http_url_search(r, u);
+        return res;
+}
+
+/* match requested url to config->urls */
+url_t *http_match_template(http_request_t *r)
+{
+	url_t *u = config->templates;
+	url_t *res = NULL;
+	res = http_url_search(r, u);
+	if (res == NULL)
+		syslog(LOG_DEBUG, "No template matches URL");
+	else
+		syslog(LOG_DEBUG, "Template matched: '%s'", u->view);
+        return res;
+}
 
 /* record key=value pair from client request */
 void http_add_request_data(http_request_t *r, char *key, char *value)

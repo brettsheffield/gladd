@@ -3,7 +3,7 @@
  *
  * this file is part of GLADD
  *
- * Copyright (c) 2012-2016 Brett Sheffield <brett@gladserv.com>
+ * Copyright (c) 2012-2017 Brett Sheffield <brett@gladserv.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,6 +31,35 @@
 
 #define DEFAULT_CONFIG "/etc/gladd.conf"
 #define SSLCIPHERS_DEFAULT "ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:RSA+AESGCM:RSA+AES:!aNULL:!MD5:!DSS"
+
+typedef enum {
+	CONFIG_TYPE_URL_INVALID,
+	CONFIG_TYPE_URL_STATIC,
+	CONFIG_TYPE_URL_DYNAMIC
+} config_url_type_t;
+
+#define CONFIG_URL_TYPES(X) \
+	X("static", CONFIG_TYPE_URL_STATIC) \
+	X("upload", CONFIG_TYPE_URL_STATIC) \
+	X("plugin", CONFIG_TYPE_URL_STATIC) \
+	X("proxy", CONFIG_TYPE_URL_STATIC) \
+	X("rewrite", CONFIG_TYPE_URL_STATIC) \
+	X("git", CONFIG_TYPE_URL_DYNAMIC) \
+	X("keyval", CONFIG_TYPE_URL_DYNAMIC) \
+	X("sqlview", CONFIG_TYPE_URL_DYNAMIC) \
+	X("sqlexec", CONFIG_TYPE_URL_DYNAMIC) \
+	X("xmlpost", CONFIG_TYPE_URL_DYNAMIC) \
+	X("xslpost", CONFIG_TYPE_URL_DYNAMIC) \
+	X("xslt", CONFIG_TYPE_URL_DYNAMIC) \
+	X("upload", CONFIG_TYPE_URL_DYNAMIC)
+#undef X
+
+#define CONFIG_URL_TYPE(k, type) if (strcmp(key, k) == 0) return type;
+
+typedef enum {
+	CONFIG_KEY_URL,
+	CONFIG_KEY_TEMPLATE
+} config_key_t;
 
 typedef struct acl_t {
         char *type; /* allow or deny */
@@ -82,6 +111,7 @@ typedef struct config_t {
         struct db_t *dbs;
         struct sql_t *sql;
         struct url_t *urls;
+        struct url_t *templates;
         struct user_t *users;
         struct group_t *groups;
 } config_t;
@@ -151,6 +181,7 @@ int     add_group (char *value);
 int     add_sql (char *value);
 int     add_url_handler(char *value);
 int     add_user (char *value);
+config_url_type_t config_url_type(char *key);
 void    free_acls();
 void    free_auth();
 void    free_config();

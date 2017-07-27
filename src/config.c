@@ -66,8 +66,11 @@ auth_t *prevauth;       /* pointer to last auth */
 db_t   *prevdb;         /* pointer to last db  */
 sql_t  *prevsql;        /* pointer to last sql */
 url_t  *prevurl;        /* pointer to last url */
+url_t  *prevtemplate;   /* pointer to last template */
 user_t *prevuser;       /* pointer to last user */
 group_t *prevgroup;     /* pointer to last group */
+
+int is_template = 0;
 
 /* add acl */
 int add_acl (char *value)
@@ -396,52 +399,16 @@ int add_url_handler(char *value)
         char type[LINE_MAX];
         char params[LINE_MAX];
 
-        /* TODO: refactor this */
         if (sscanf(value, "%s %[^\n]", type, params) == 2) {
-                if (strcmp(type, "static") == 0) {
-                        handle_url_static("static", params);
-                }
-#ifdef _GIT
-		else if (strcmp(type, "git") == 0) {
-                        handle_url_dynamic("git", params);
-                }
-#endif /* _GIT */
-                else if (strcmp(type, "keyval") == 0) {
-                        handle_url_dynamic("keyval", params);
-                }
-                else if (strcmp(type, "ldif") == 0) {
-                        handle_url_dynamic("ldif", params);
-                }
-                else if (strcmp(type, "sqlview") == 0) {
-                        handle_url_dynamic("sqlview", params);
-                }
-                else if (strcmp(type, "sqlexec") == 0) {
-                        handle_url_dynamic("sqlexec", params);
-                }
-                else if (strcmp(type, "xmlpost") == 0) {
-                        handle_url_dynamic("xmlpost", params);
-                }
-                else if (strcmp(type, "xslpost") == 0) {
-                        handle_url_dynamic("xslpost", params);
-                }
-                else if (strcmp(type, "xslt") == 0) {
-                        handle_url_dynamic("xslt", params);
-                }
-                else if (strcmp(type, "upload") == 0) {
-                        handle_url_static("upload", params);
-                }
-                else if (strcmp(type, "plugin") == 0) {
-                        handle_url_static("plugin", params);
-                }
-                else if (strcmp(type, "proxy") == 0) {
-                        handle_url_static("proxy", params);
-                }
-                else if (strcmp(type, "rewrite") == 0) {
-                        handle_url_static("rewrite", params);
-                }
-                else {
-                        fprintf(stderr, "skipping unhandled url type '%s'\n", 
-                                                                        type);
+	        switch (config_url_type(type)) {
+		case CONFIG_TYPE_URL_STATIC:
+			handle_url_static(type, params);
+			break;
+		case CONFIG_TYPE_URL_DYNAMIC:
+			handle_url_dynamic(type, params);
+			break;
+		case CONFIG_TYPE_URL_INVALID:
+                        fprintf(stderr, "skipping unhandled url type '%s'\n", type);
                         return -1;
                 }
         }
@@ -478,6 +445,11 @@ int add_user(char *value)
         return 0;
 }
 
+config_url_type_t config_url_type(char *key)
+{
+        CONFIG_URL_TYPES(CONFIG_URL_TYPE)
+        return CONFIG_TYPE_URL_INVALID;
+}
 
 /* clean up config->acls memory */
 void free_acls()
@@ -559,6 +531,7 @@ void free_config()
         prevdb = NULL;
         prevsql = NULL;
         prevurl = NULL;
+        prevtemplate = NULL;
         prevuser = NULL;
         prevgroup = NULL;
 }
@@ -649,6 +622,7 @@ void free_urls(url_t *u)
         url_t *tmp;
 
         while (u != NULL) {
+                free(u->type);
                 free(u->method);
                 free(u->url);
                 free(u->domain);
@@ -762,7 +736,7 @@ void handle_url_static(char *type, char params[LINE_MAX])
         newurl = malloc(sizeof(struct url_t));
 
         if (sscanf(params, "%s %s %[^\n]", method, url, path) == 3) {
-                newurl->type = type;
+                newurl->type = strdup(type);
                 newurl->method = strdup(method);
                 /* if url starts with //, use first segment as domain */
                 if (strncmp(url, "//", 2) == 0) {
@@ -789,18 +763,25 @@ void handle_url_static(char *type, char params[LINE_MAX])
                 newurl->db = NULL;
                 newurl->view = NULL;
                 newurl->next = NULL;
-                if (prevurl != NULL) {
-                        /* update ->next ptr in previous url
-                         * to point to new */
-                        prevurl->next = newurl;
-                }
-                else {
-                        /* no previous url, 
-                         * so set first ptr in config */
-                        config_new->urls = newurl;
-                }
-                prevurl = newurl;
-        }
+                if (is_template) {
+			if (prevtemplate != NULL) {
+				prevtemplate->next = newurl;
+			}
+			else {
+				config_new->templates = newurl;
+			}
+			prevtemplate = newurl;
+		}
+		else {
+			if (prevurl != NULL) {
+				prevurl->next = newurl;
+			}
+			else {
+				config_new->urls = newurl;
+			}
+			prevurl = newurl;
+		}
+         }
 }
 
 /* handle dynamic type urls */
@@ -815,7 +796,7 @@ void handle_url_dynamic(char *type, char params[LINE_MAX])
         newurl = malloc(sizeof(struct url_t));
 
         if (sscanf(params, "%s %s %s %s", method, url, db, view) == 4) {
-                newurl->type = type;
+                newurl->type = strdup(type);
                 newurl->method = strdup(method);
                 newurl->url = strdup(url);
                 newurl->db = strdup(db);
@@ -823,17 +804,24 @@ void handle_url_dynamic(char *type, char params[LINE_MAX])
                 newurl->domain = strdup(domain);
                 newurl->path = NULL;
                 newurl->next = NULL;
-                if (prevurl != NULL) {
-                        /* update ->next ptr in previous url
-                         * to point to new */
-                        prevurl->next = newurl;
-                }
-                else {
-                        /* no previous url, 
-                         * so set first ptr in config */
-                        config_new->urls = newurl;
-                }
-                prevurl = newurl;
+                if (is_template) {
+			if (prevtemplate != NULL) {
+				prevtemplate->next = newurl;
+			}
+			else {
+				config_new->templates = newurl;
+			}
+			prevtemplate = newurl;
+		}
+		else {
+			if (prevurl != NULL) {
+				prevurl->next = newurl;
+			}
+			else {
+				config_new->urls = newurl;
+			}
+			prevurl = newurl;
+		}
         }
 }
 
@@ -950,6 +938,11 @@ int process_config_line(char *line)
                         i = asprintf(&config->urldefault, "%s", value);
                 }
                 else if (strcmp(key, "url") == 0) {
+	                is_template = 0;
+                        i = add_url_handler(value);
+                }
+                else if (strcmp(key, "template") == 0) {
+	                is_template = 1;
                         i = add_url_handler(value);
                 }
                 else if (strcmp(key, "user") == 0) {
@@ -1051,13 +1044,12 @@ int read_config(char *configfile)
         prevdb = NULL;
         prevsql = NULL;
         prevurl = NULL;
+        prevtemplate = NULL;
         prevuser = NULL;
         prevgroup = NULL;
 
         set_config_defaults();
         config_new = &config_default;
-
-        prevurl = NULL;
 
 	asprintf(&domain, "*");
 	asprintf(&docroot, "/");

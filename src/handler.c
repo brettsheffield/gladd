@@ -354,6 +354,7 @@ void respond (int fd, char *response)
         snd(fd, response, strlen(response), 0);
 }
 
+#ifndef _NGLADDB
 static int handler_fetch_keyval(db_t *db, url_t *u, keyval_t **k)
 {
 	keyval_t *kv = *k;
@@ -379,7 +380,6 @@ static int handler_fetch_keyval(db_t *db, url_t *u, keyval_t **k)
 	return 0;
 }
 
-#ifndef _NGLADDB
 http_status_code_t response_keyval(int sock, url_t *u)
 {
 	char *headers = NULL;

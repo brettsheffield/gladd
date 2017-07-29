@@ -383,6 +383,7 @@ static int handler_fetch_keyval(db_t *db, url_t *u, keyval_t **k)
 http_status_code_t response_keyval(int sock, url_t *u)
 {
 	char *headers = NULL;
+	char *page = NULL;
 	char *r = NULL;
 	int err = 0;
 	db_t *db = NULL;
@@ -419,17 +420,23 @@ http_status_code_t response_keyval(int sock, url_t *u)
 		if ((err = handler_fetch_keyval(db, template, &kvt)) != 0) {
 			goto close_conn;
 		}
+		xmltransform_mem(kvt->value, kv->value, &page);
+		if (page == NULL)
+			return HTTP_INTERNAL_SERVER_ERROR;
+	}
+	else {
+		page = strdup(kv->value);
 	}
 	free_db(db);
 
-	asprintf(&headers,"%s\nContent-Length: %i",MIME_HTML,(int)strlen(kv->value));
-	if (asprintf(&r, RESPONSE_200, config->serverstring, headers, kv->value) == -1)
+	if (asprintf(&r, RESPONSE_200, config->serverstring, headers, page) == -1)
 	{
 		free(kv->key);
 		free(kv->value);
 		free(kv);
 		return HTTP_INTERNAL_SERVER_ERROR;
 	}
+	free(page);
 	free(headers);
 	set_headers(&r); /* set any additional headers */
 	respond(sock, r);

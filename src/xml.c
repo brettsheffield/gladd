@@ -334,6 +334,75 @@ int xmltransform(const char *xslt_filename, const char *xml, char **output,
         return 0;
 }
 
+/* TODO: FIXME - small memory leak in this function */
+int xmltransform_mem(char *xslt, char *xml, char **res)
+{
+        xsltStylesheetPtr ptrxslt;
+        xmlDocPtr docxml, docxslt, doc;
+        xmlChar *out = NULL;
+        int len;
+        int r = 0;
+
+        xsltInit();
+
+        /* read stylesheet */
+	syslog(LOG_DEBUG, "reading stylesheet");
+        docxslt = xmlReadMemory(xslt, strlen(xslt), "", NULL, 0);
+	if (docxslt == NULL) {
+		r = -1;
+		goto xmltransform_mem_exit_00;
+	}
+
+	/* parse stylesheet */
+	syslog(LOG_DEBUG, "parsing stylesheet");
+        ptrxslt = xsltParseStylesheetDoc(docxslt);
+        if (ptrxslt == NULL) {
+		r = -2;
+		goto xmltransform_mem_exit_01;
+	}
+
+        /* read xml */
+	syslog(LOG_DEBUG, "reading xml");
+        docxml = xmlReadMemory(xml, strlen(xml), "", NULL, 0);
+        if (docxml == NULL) {
+		r = -3;
+		goto xmltransform_mem_exit_02;
+	}
+
+        /* transform */
+	syslog(LOG_DEBUG, "transforming");
+        doc = xsltApplyStylesheet(ptrxslt, docxml, NULL);
+        if (doc == NULL) {
+		r = -4;
+		goto xmltransform_mem_exit_03;
+	}
+
+        /* flatten */
+	syslog(LOG_DEBUG, "flattening xml");
+        xsltSaveResultToString(&out, &len, doc, ptrxslt);
+	if (out) {
+		syslog(LOG_DEBUG, "xsltSaveResultToString() succeeded");
+		*res = strdup((char *)out);
+	}
+	else {
+		syslog(LOG_DEBUG, "xsltSaveResultToString() failed");
+	}
+
+	/* clean up */
+xmltransform_mem_exit_03:
+        xmlFreeDoc(docxml);
+xmltransform_mem_exit_02:
+        xsltFreeStylesheet(ptrxslt);
+xmltransform_mem_exit_01:
+        /* TODO: FIXME */
+        //xmlFreeDoc(docxslt);
+xmltransform_mem_exit_00:
+        xmlCleanupParser();
+
+	return r;
+}
+
+
 void xml_prepend_element(xmlDocPtr docxml, char *name, char *value)
 {
         xmlNodePtr r;

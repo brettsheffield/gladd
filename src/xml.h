@@ -3,7 +3,7 @@
  *
  * this file is part of GLADD
  *
- * Copyright (c) 2012-2016 Brett Sheffield <brett@gladserv.com>
+ * Copyright (c) 2012-2017 Brett Sheffield <brett@gladserv.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,6 +38,7 @@ int sqltoxml(db_t *db, char *sql, field_t *filter, char **xml, int pretty);
 #endif
 int xmltransform(const char *xslt_filename, const char *xml, char **output,
         field_t *filter);
+int xmltransform_mem(char *xslt, char *xml, char **res);
 int xml_validate(const char *schema_filename, const char *xml);
 
 #endif /* __GLADD_XML_H__ */

@@ -429,6 +429,7 @@ http_status_code_t response_keyval(int sock, url_t *u)
 	}
 	free_db(db);
 
+	asprintf(&headers,"%s\nContent-Length: %i",MIME_HTML,(int)strlen(page));
 	if (asprintf(&r, RESPONSE_200, config->serverstring, headers, page) == -1)
 	{
 		free(kv->key);

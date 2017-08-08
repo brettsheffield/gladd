@@ -119,7 +119,7 @@ then
 		AC_MSG_NOTICE([OPENSSL enabled.])
 		AC_SUBST(cflagssl, -D_OPENSSL)
 		AC_SUBST(ssl, openssl)
-		AC_SUBST(libssl,["`pkg-config --libs openssl`"])
+		AC_SUBST(libssl,[-lssl -crypto])
 	,
 		AC_MSG_ERROR([openssl required for --with-openssl])
 	)

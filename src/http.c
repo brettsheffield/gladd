@@ -53,6 +53,7 @@
  *   http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html
  */
 struct http_status httpcode[] = {
+        { 101, "Switching Protocols" },
         { 200, "OK" },
         { 201, "Created" },
         { 202, "Accepted" },
@@ -832,6 +833,13 @@ void http_response_full(int sock, int code, char *mime, char *body)
                 /* 401 Unauthorized MUST include WWW-Authenticate header */
                 http_insert_header(&r, "WWW-Authenticate: %s realm=\"%s\"", 
                         request->authtype, config->authrealm);
+        }
+        if (request->serverheaders) {
+                keyval_t *h = request->serverheaders;
+                while (h != NULL) {
+                        http_insert_header(&r, h->value);
+                        h = h->next;
+                }
         }
         respond(sock, r);
         free(r);

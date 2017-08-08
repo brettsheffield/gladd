@@ -3,7 +3,7 @@
  *
  * this file is part of GLADD
  *
- * Copyright (c) 2012, 2013 Brett Sheffield <brett@gladserv.com>
+ * Copyright (c) 2012-2017 Brett Sheffield <brett@gladserv.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,6 +32,7 @@
 #include "config.h"
 
 typedef enum {
+	HTTP_SWITCHING_PROTOCOLS        = 101,
         HTTP_OK                         = 200,
         HTTP_CREATED                    = 201,
         HTTP_BAD_REQUEST                = 400,

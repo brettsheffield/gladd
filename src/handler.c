@@ -170,6 +170,7 @@ handler_result_t handle_request(int sock, char *s)
         int hcount = 0;
         url_t *u = NULL;
         long len = 0;
+        char *upgrade = NULL;
 
 
         /* read http client request */
@@ -241,7 +242,7 @@ handler_result_t handle_request(int sock, char *s)
         }
 #endif /* _NAUTH */
 
-        if (strcmp(request->method, "POST") == 0) {
+	if (strcmp(request->method, "POST") == 0) {
                 /* POST requires Content-Length header */
                 http_status_code_t err;
 
@@ -263,7 +264,18 @@ handler_result_t handle_request(int sock, char *s)
                 }
         }
         syslog(LOG_DEBUG, "Type: %s", u->type);
-        if (strncmp(u->type, "static", 6) == 0) {
+        upgrade = http_get_header(request, "Upgrade");
+        if (upgrade) {
+                syslog(LOG_DEBUG, "Client has requested upgrade to: %s", upgrade);
+		if (handler_upgrade_connection_check(request) == 0) {
+			err = response_upgrade(sock, u);
+			//return HANDLER_OK;
+		}
+		else {
+			syslog(LOG_DEBUG, "Client upgrade rejected. Ignoring: %s", upgrade);
+		}
+        }
+	else if (strncmp(u->type, "static", 6) == 0) {
                 /* serve static files */
                 err = response_static(sock, u);
                 if (err != 0)
@@ -1570,6 +1582,16 @@ ssize_t snd_blank_line(int sock)
 	return snd(sock, "\r\n", 2, 0);
 }
 
+ssize_t snd_string(int sock, char *str, ...)
+{
+	ssize_t len = 0;
+	va_list argp;
+	va_start(argp, str);
+	len = vdprintf(sock, str, argp);
+	va_end(argp);
+	return len;
+}
+
 void setcork(int sock, int state)
 {
         if (config->ssl) {
@@ -1614,4 +1636,80 @@ void set_headers(char **r)
                 }
         }
         syslog(LOG_DEBUG, "set_headers() done");
+}
+
+int handler_upgrade_connection_check(http_request_t *r)
+{
+	char *h;
+
+	/* RFC 6455 */
+	if (strcmp(r->method, "GET") != 0) {
+		syslog(LOG_ERR, "Invalid method '%s' for client upgrade", r->method);
+		return HANDLER_UPGRADE_INVALID_METHOD;
+	}
+	if (strcmp(r->httpv, "1.1") != 0) {
+		syslog(LOG_ERR, "Upgrade unsupported in HTTP version '%s'", r->httpv);
+		return HANDLER_UPGRADE_INVALID_HTTP_VERSION;
+	}
+	h = http_get_header(request, "Host");
+	if (!h) {
+		syslog(LOG_ERR, "Host header required for client upgrade");
+		return HANDLER_UPGRADE_NO_HOST_HEADER;
+	}
+	h = http_get_header(request, "Upgrade");
+	if (strcasestr(h, "websocket") == NULL) {
+		syslog(LOG_ERR, "Unknown upgrade type '%s' requested", h);
+		return HANDLER_UPGRADE_INVALID_UPGRADE;
+	}
+	h = http_get_header(request, "Connection");
+	if (strcasestr(h, "upgrade") == NULL) {
+		syslog(LOG_ERR, "'Connection: upgrade' required");
+		return HANDLER_UPGRADE_INVALID_CONN;
+	}
+	h = http_get_header(request, "Sec-WebSocket-Key");
+	if (!h) {
+		syslog(LOG_ERR, "Sec-WebSocket-Key required");
+		return HANDLER_UPGRADE_MISSING_KEY;
+	}
+	h = http_get_header(request, "Sec-WebSocket-Version");
+	if (strcmp(h, "13") != 0) {
+		syslog(LOG_ERR, "Sec-WebSocket-Version != 13");
+		return HANDLER_UPGRADE_INVALID_WEBSOCKET_VERSION;
+	}
+	h = http_get_header(request, "Sec-WebSocket-Protocol");
+	if (h)
+		syslog(LOG_DEBUG, "Sec-WebSocket-Protocol: '%s' requested", h);
+	h = http_get_header(request, "Sec-WebSocket-Extensions");
+	if (h)
+		syslog(LOG_DEBUG, "Sec-WebSocket-Extensions: '%s' requested", h);
+
+	return 0;
+}
+
+http_status_code_t response_upgrade(int sock, url_t *u)
+{
+	unsigned char md[SHA_DIGEST_LENGTH];
+	char *header;
+	char *ctok;
+	char *stok;
+	char *status;
+	unsigned char b64[SHA_DIGEST_LENGTH * 4 / 3];
+
+	ctok = http_get_header(request, "Sec-WebSocket-Key");
+	asprintf(&stok, "%s258EAFA5-E914-47DA-95CA-C5AB0DC85B11", ctok);
+	SHA1((unsigned char *)stok, strlen(stok), md);
+	free(stok);
+	EVP_EncodeBlock(b64, md, SHA_DIGEST_LENGTH);
+	asprintf(&header, "Sec-WebSocket-Accept: %s\r\n", b64);
+
+	status = get_status(HTTP_SWITCHING_PROTOCOLS).status;
+	snd_string(sock, "HTTP/1.1 %i %s\r\n", HTTP_SWITCHING_PROTOCOLS, status);
+	snd_string(sock, "Upgrade: websocket\r\n");
+	snd_string(sock, "Connection: Upgrade\r\n");
+	snd_string(sock, header);
+	free(header);
+	snd_blank_line(sock);
+	setcork(sock, 0);
+
+	return HTTP_SWITCHING_PROTOCOLS;
 }

@@ -30,16 +30,25 @@
 
 typedef enum {
         HANDLER_OK                      = 0,
-        HANDLER_CLOSE_CONNECTION        = 1
+        HANDLER_CLOSE_CONNECTION        = 1,
+        HANDLER_UPGRADE_INVALID_METHOD  = 2,
+        HANDLER_UPGRADE_INVALID_HTTP_VERSION = 3,
+        HANDLER_UPGRADE_NO_HOST_HEADER  = 4,
+        HANDLER_UPGRADE_INVALID_UPGRADE = 5,
+        HANDLER_UPGRADE_INVALID_CONN    = 6,
+        HANDLER_UPGRADE_MISSING_KEY     = 7,
+        HANDLER_UPGRADE_INVALID_WEBSOCKET_VERSION = 8
 } handler_result_t;
 
 void *get_in_addr(struct sockaddr *sa);
 db_t   *getdbv(char *alias);
 void handle_connection(int sock, struct sockaddr_storage their_addr);
 handler_result_t handle_request(int sock, char *s);
+int handler_upgrade_connection_check(http_request_t *r);
 size_t rcv(int sock, void *data, size_t len, int flags);
 ssize_t snd(int sock, void *data, size_t len, int flags);
 ssize_t snd_blank_line(int sock);
+ssize_t snd_string(int sock, char *str, ...);
 void respond (int fd, char *response);
 int send_file(int sock, char *path, http_status_code_t *err);
 void setcork(int sock, int state);
@@ -58,6 +67,7 @@ http_status_code_t response_sqlexec(int sock, url_t *u);
 http_status_code_t response_plugin(int sock, url_t *u);
 http_status_code_t response_static(int sock, url_t *u);
 http_status_code_t response_upload(int sock, url_t *u);
+http_status_code_t response_upgrade(int sock, url_t *u);
 http_status_code_t response_xml_plugin(int sock, url_t *u);
 http_status_code_t response_xslt(int sock, url_t *u);
 

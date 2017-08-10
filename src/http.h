@@ -75,6 +75,7 @@ typedef struct http_request_t {
         int nocache;            /* 0 (default), 1 = do not cache         */
         int nofilter;           /* 0 (default), 1 = no SQL WHERE filter  */
         int uuid;               /* 0 (default), 1 = use uuid for uploads */
+        int websocket;          /* 1 = this is a websocket               */
         keyval_t *headers;      /* client request headers                */
         keyval_t *data;         /* client request data                   */
         keyval_t *serverheaders;/* additional server response headers    */

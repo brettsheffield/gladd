@@ -36,6 +36,7 @@
 #include "mime.h"
 #include "string.h"
 #include "utils.h"
+#include "websocket.h"
 #include "xml.h"
 
 #include <arpa/inet.h>
@@ -73,6 +74,7 @@
 
 http_status_code_t response_xslpost(int sock, url_t *u);
 field_t *get_element(int *err);
+int websocket = 0;
 
 /*
  * get sockaddr, IPv4 or IPv6:
@@ -141,7 +143,8 @@ void handle_connection(int sock, struct sockaddr_storage their_addr)
                 if (!waitfordata(sock, bytes, s)) break;
                 syslog(LOG_DEBUG, "handling request %i on connection", ++i);
                 err = handle_request(sock, s);
-                free_request(&request);
+                if (websocket == 0)
+	                free_request(&request);
                 http_flush_buffer();
         }
         while ((err == HANDLER_OK) && (config->pipelining == 1));
@@ -172,13 +175,19 @@ handler_result_t handle_request(int sock, char *s)
         long len = 0;
         char *upgrade = NULL;
 
+	if (websocket == 1) {
+		syslog(LOG_DEBUG, "Request on established websocket");
+		return (ws_handle_request(sock) == 0) ? HANDLER_OK : HANDLER_CLOSE_CONNECTION;
+	}
+	else {
+		/* read http client request */
+		request = http_read_request(sock, &hcount, &err);
+	}
 
-        /* read http client request */
-        request = http_read_request(sock, &hcount, &err);
-        if (err != 0) {
-                http_response(sock, err);
-                return HANDLER_OK;
-        }
+	if (err != 0) {
+		http_response(sock, err);
+		return HANDLER_OK;
+	}
 
         if (request == NULL) /* connection was closed */
                 return HANDLER_CLOSE_CONNECTION;
@@ -1710,6 +1719,7 @@ http_status_code_t response_upgrade(int sock, url_t *u)
 	free(header);
 	snd_blank_line(sock);
 	setcork(sock, 0);
+	websocket = 1;
 
 	return HTTP_SWITCHING_PROTOCOLS;
 }

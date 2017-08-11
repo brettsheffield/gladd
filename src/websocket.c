@@ -49,11 +49,9 @@ int ws_do_data(int sock, ws_frame_t *f)
 	switch (f->opcode) {
 	case 0x0:
 		logmsg(LVL_DEBUG, "(websocket) DATA (continuation frame)");
-		break;
+		return ERROR_WEBSOCKET_UNEXPECTED_CONTINUE;
 	case 0x1:
 		logmsg(LVL_DEBUG, "(websocket) DATA (text)");
-		logmsg(LVL_DEBUG, "%s", f->data);
-		ws_send(sock, WS_OPCODE_PING, "PING", 4);
 		break;
 	case 0x2:
 		logmsg(LVL_DEBUG, "(websocket) DATA (binary)");
@@ -74,8 +72,8 @@ int ws_do_noop(int sock, ws_frame_t *f)
 
 int ws_do_ping(int sock, ws_frame_t *f)
 {
-	/* TODO: send PONG and return data */
 	logmsg(LVL_DEBUG, "(websocket) PING");
+	ws_send(sock, WS_OPCODE_PONG, f->data, f->len);
 	return 0;
 }
 
@@ -83,7 +81,7 @@ int ws_do_pong(int sock, ws_frame_t *f)
 {
 	/* TODO: handle client reply to our PING */
 	logmsg(LVL_DEBUG, "(websocket) PONG");
-	return 0;
+	return ERROR_WEBSOCKET_UNEXPECTED_PONG;
 }
 
 int ws_handle_request(int sock)

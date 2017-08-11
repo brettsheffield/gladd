@@ -38,9 +38,13 @@ typedef struct ws_frame_header_t {
 int ws_handle_request(int sock)
 {
 	int err;
-	void *payload = NULL;
+	ws_frame_t *f = NULL;
 
-	err = ws_read_request(sock, payload);
+	err = ws_read_request(sock, &f);
+	if (err == 0)
+		/* TODO: process request */
+
+	free(f);
 
 	return err;
 }
@@ -53,26 +57,31 @@ char *ws_protocol_name(ws_protocol_t proto)
 	return WS_PROTOCOL_NONE;
 }
 
-int ws_read_request(int sock, void *payload)
+int ws_read_request(int sock, ws_frame_t **ret)
 {
-	ws_frame_header_t *f;
+	ws_frame_t *f;
+	ws_frame_header_t *fh;
 	ssize_t len;
 	uint8_t mask, tmp;
 	uint8_t masked, unmasked;
-	uint16_t opcode = 0;
-	uint32_t maskkey = 0;
 	uint32_t i;
-	uint64_t paylen = 0;
 	void *data;
 
 	/* read websocket header */
-	f = calloc(1, sizeof(struct ws_frame_header_t));
-	len = read(sock, f, 2);
+	f = calloc(1, sizeof(struct ws_frame_t));
+	fh = calloc(1, sizeof(struct ws_frame_header_t));
+	len = read(sock, fh, 2);
 	logmsg(LVL_DEBUG, "(websocket) %i bytes read (header)", (int)len);
 
 	/* check some bit flags */
-	if (f->f1 & 0x80)
-		logmsg(LVL_DEBUG, "(websocket) FIN");
+	f->fin = (fh->f1 & 0x80) >> 7;
+	f->rsv1 = (fh->f1 & 0x40) >> 6;
+	f->rsv2 = (fh->f1 & 0x20) >> 5;
+	f->rsv3 = (fh->f1 & 0x10) >> 4;
+	f->opcode = fh->f1 & 0xf;
+	f->mask = (fh->f2 & 0x80) >> 7;
+	f->len = fh->f2 & 0x7f;
+
 	/* TODO: handle fragmentation */
 	/* TODO: ensure control frames aren't fragmented */
 	/* TODO: handle control frames */
@@ -80,24 +89,22 @@ int ws_read_request(int sock, void *payload)
 	/* TODO: closing connection & closure codes */
 	/* TODO: write to socket */
 
-	if (f->f1 & 0x40) {
+	if (f->fin)
+		logmsg(LVL_DEBUG, "(websocket) FIN");
+	if (f->rsv1) {
 		logmsg(LVL_DEBUG, "(websocket) RSV1");
 		return ERROR_WEBSOCKET_RSVBITSET;
 	}
-
-	if (f->f1 & 0x20) {
+	if (f->rsv2) {
 		logmsg(LVL_DEBUG, "(websocket) RSV2");
 		return ERROR_WEBSOCKET_RSVBITSET;
 	}
-
-	if (f->f1 & 0x10) {
+	if (f->rsv3) {
 		logmsg(LVL_DEBUG, "(websocket) RSV3");
 		return ERROR_WEBSOCKET_RSVBITSET;
 	}
 
-	/* read the opcode */
-	opcode |= (f->f1 & 0xf);
-        switch (opcode) {
+        switch (f->opcode) {
         case 0x0:
                 logmsg(LVL_DEBUG, "(websocket) opcode 0x0: continuation frame");
                 break;
@@ -119,57 +126,57 @@ int ws_read_request(int sock, void *payload)
                 break;
         /* %xB-F are reserved for further control frames */
         default:
-                logmsg(LVL_DEBUG, "(websocket) unknown opcode %#x received", opcode);
+                logmsg(LVL_DEBUG, "(websocket) unknown opcode %#x received", f->opcode);
 		return ERROR_WEBSOCKET_BAD_OPCODE;
                 break;
         }
 
-	if (f->f2 & 0x80)
+	if (f->mask == 1) {
 		logmsg(LVL_DEBUG, "(websocket) MASK");
-	else
+	}
+	else {
+		logmsg(LVL_WARNING, "Rejecting unmasked client data");
 		return ERROR_WEBSOCKET_UNMASKED_DATA;
+	}
 
 	/* get payload length */
-	paylen |= (f->f2 & 0x7f);
-	if (paylen == 126) {
+	if (f->len == 126) {
 		/* 16 bit extended payload length */
-		len = read(sock, &paylen, 2);
+		len = read(sock, &(f->len), 2);
 		logmsg(LVL_DEBUG, "(websocket) %li bytes read (length)", len);
-		paylen = ntohs(paylen);
+		f->len = ntohs(f->len);
 	}
-	else if (paylen == 127) {
+	else if (f->len == 127) {
 		/* 64 bit extra specially extended payload length of great wonderfulness */
-		len = read(sock, &paylen, 8);
+		len = read(sock, &(f->len), 8);
 		logmsg(LVL_DEBUG, "(websocket) %li bytes read (length)", len);
-		paylen = ntohll(paylen);
+		f->len = ntohll(f->len);
 	}
-	logmsg(LVL_DEBUG, "(websocket) length: %u", (unsigned int)paylen);
+	logmsg(LVL_DEBUG, "(websocket) length: %u", (unsigned int)f->len);
 
 	/* get payload mask */
-	len = read(sock, &maskkey, 4);
+	len = read(sock, &(f->maskkey), 4);
 	logmsg(LVL_DEBUG, "(websocket) %i bytes read (mask)", (int)len);
-	logmsg(LVL_DEBUG, "(websocket) mask: %02x", ntohl(maskkey));
+	logmsg(LVL_DEBUG, "(websocket) mask: %02x", ntohl(f->maskkey));
 
 	/* read payload */
-	data = calloc(1, paylen + 1);
-	len = read(sock, data, paylen);
+	data = calloc(1, f->len + 1);
+	len = read(sock, data, f->len);
 	logmsg(LVL_DEBUG, "(websocket) %i bytes read (payload)", (int)len);
 
 	/* unmask payload */
-	payload = calloc(1, paylen + 1);
-	for (i = 0; i < paylen; i++) {
-		tmp = maskkey >> ((i % 4) * 8);
+	f->data = calloc(1, f->len + 1);
+	for (i = 0; i < f->len; i++) {
+		tmp = f->maskkey >> ((i % 4) * 8);
 		bcopy(&tmp, &mask, 1);
 		bcopy(data + i, &masked, 1);
 		unmasked = mask ^ masked;
-		bcopy(&unmasked, payload + i, 1);
+		bcopy(&unmasked, f->data + i, 1);
 	}
-
-	/* TODO: process payload */
-
-	free(payload);
 	free(data);
-	free(f);
+	free(fh);
+
+	*ret = f;
 
 	return 0;
 }

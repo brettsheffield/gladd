@@ -35,6 +35,18 @@ typedef enum {
 	WS_PROTOCOL_LIBRECAST = 1
 } ws_protocol_t;
 
+typedef struct ws_frame_t {
+	uint8_t fin:1;
+	uint8_t rsv1:1;
+	uint8_t rsv2:1;
+	uint8_t rsv3:1;
+	uint8_t opcode:4;
+	uint8_t mask:1;
+	uint64_t len;
+	uint32_t maskkey;
+	void *data;
+} ws_frame_t;
+
 #define WS_PROTOCOLS(X) \
 	X("none", WS_PROTOCOL_NONE) \
 	X("librecast", WS_PROTOCOL_LIBRECAST)
@@ -52,7 +64,7 @@ int ws_handle_request(int sock);
 char *ws_protocol_name(ws_protocol_t proto);
 
 /* read websocket framing protocol */
-int ws_read_request(int sock, void *payload);
+int ws_read_request(int sock, ws_frame_t **f);
 
 /* return the first matching protocol we support */
 int ws_select_protocol(char *header);

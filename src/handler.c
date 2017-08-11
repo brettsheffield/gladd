@@ -74,7 +74,8 @@
 
 http_status_code_t response_xslpost(int sock, url_t *u);
 field_t *get_element(int *err);
-int websocket = 0;
+
+int ws_proto = WS_PROTOCOL_INVALID;
 
 /*
  * get sockaddr, IPv4 or IPv6:
@@ -143,7 +144,7 @@ void handle_connection(int sock, struct sockaddr_storage their_addr)
                 if (!waitfordata(sock, bytes, s)) break;
                 syslog(LOG_DEBUG, "handling request %i on connection", ++i);
                 err = handle_request(sock, s);
-                if (websocket == 0)
+                if (ws_proto == WS_PROTOCOL_INVALID)
 	                free_request(&request);
                 http_flush_buffer();
         }
@@ -175,7 +176,7 @@ handler_result_t handle_request(int sock, char *s)
         long len = 0;
         char *upgrade = NULL;
 
-	if (websocket == 1) {
+	if (ws_proto != WS_PROTOCOL_INVALID) {
 		syslog(LOG_DEBUG, "Request on established websocket");
 		return (ws_handle_request(sock) == 0) ? HANDLER_OK : HANDLER_CLOSE_CONNECTION;
 	}
@@ -1650,6 +1651,7 @@ void set_headers(char **r)
 int handler_upgrade_connection_check(http_request_t *r)
 {
 	char *h;
+	ws_protocol_t proto = WS_PROTOCOL_NONE;
 
 	/* RFC 6455 */
 	if (strcmp(r->method, "GET") != 0) {
@@ -1686,8 +1688,17 @@ int handler_upgrade_connection_check(http_request_t *r)
 		return HANDLER_UPGRADE_INVALID_WEBSOCKET_VERSION;
 	}
 	h = http_get_header(request, "Sec-WebSocket-Protocol");
-	if (h)
+	if (h) {
 		syslog(LOG_DEBUG, "Sec-WebSocket-Protocol: '%s' requested", h);
+		proto = ws_select_protocol(h);
+		if (proto == WS_PROTOCOL_INVALID) {
+			syslog(LOG_DEBUG, "DEBUG: return code %i", proto);
+			syslog(LOG_DEBUG, "Unsupported websocket protocol requested");
+			return HANDLER_INVALID_WEBSOCKET_PROTOCOL;
+		}
+	}
+	syslog(LOG_DEBUG, "protocol selected: %s", ws_protocol_name(proto));
+	ws_proto = proto;
 	h = http_get_header(request, "Sec-WebSocket-Extensions");
 	if (h)
 		syslog(LOG_DEBUG, "Sec-WebSocket-Extensions: '%s' requested", h);
@@ -1715,11 +1726,12 @@ http_status_code_t response_upgrade(int sock, url_t *u)
 	snd_string(sock, "HTTP/1.1 %i %s\r\n", HTTP_SWITCHING_PROTOCOLS, status);
 	snd_string(sock, "Upgrade: websocket\r\n");
 	snd_string(sock, "Connection: Upgrade\r\n");
+	if (ws_proto > 0)
+		snd_string(sock, "Sec-WebSocket-Protocol: %s\r\n", ws_protocol_name(ws_proto));
 	snd_string(sock, header);
 	free(header);
 	snd_blank_line(sock);
 	setcork(sock, 0);
-	websocket = 1;
 
 	return HTTP_SWITCHING_PROTOCOLS;
 }

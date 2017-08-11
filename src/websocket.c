@@ -20,6 +20,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "string.h"
 #include "websocket.h"
 
 #include <arpa/inet.h>
@@ -40,6 +41,14 @@ int ws_handle_request(int sock)
 	err = ws_read_request(sock);
 
 	return err;
+}
+
+char *ws_protocol_name(ws_protocol_t proto)
+{
+	switch (proto) {
+		WS_PROTOCOLS(WS_PROTOCOL)
+	};
+	return WS_PROTOCOL_NONE;
 }
 
 int ws_read_request(int sock)
@@ -155,4 +164,22 @@ int ws_read_request(int sock)
 	free(f);
 
 	return 0;
+}
+
+int ws_select_protocol(char *header)
+{
+	int i = 0;
+	int j = 0;
+	char *keys = strdup(header);
+	char **protos;
+
+	/* return the first matching protocol we support */
+	protos = tokenize(&j, &keys, ",");
+	for (i = 0; i < j; i++) {
+		syslog(LOG_DEBUG, "Trying protocol: %s", protos[i]);
+		WS_PROTOCOLS(WS_PROTOCOL_SELECT)
+	}
+	free(keys);
+
+	return WS_PROTOCOL_INVALID;
 }

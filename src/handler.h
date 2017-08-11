@@ -37,7 +37,8 @@ typedef enum {
         HANDLER_UPGRADE_INVALID_UPGRADE = 5,
         HANDLER_UPGRADE_INVALID_CONN    = 6,
         HANDLER_UPGRADE_MISSING_KEY     = 7,
-        HANDLER_UPGRADE_INVALID_WEBSOCKET_VERSION = 8
+        HANDLER_UPGRADE_INVALID_WEBSOCKET_VERSION = 8,
+        HANDLER_INVALID_WEBSOCKET_PROTOCOL = 9
 } handler_result_t;
 
 void *get_in_addr(struct sockaddr *sa);

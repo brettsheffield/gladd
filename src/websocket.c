@@ -21,6 +21,7 @@
  */
 
 #include "errors.h"
+#include "handler.h"
 #include "log.h"
 #include "string.h"
 #include "websocket.h"
@@ -45,7 +46,23 @@ int ws_do_close(int sock, ws_frame_t *f)
 int ws_do_data(int sock, ws_frame_t *f)
 {
 	/* TODO */
-	logmsg(LVL_DEBUG, "(websocket) DATA");
+	switch (f->opcode) {
+	case 0x0:
+		logmsg(LVL_DEBUG, "(websocket) DATA (continuation frame)");
+		break;
+	case 0x1:
+		logmsg(LVL_DEBUG, "(websocket) DATA (text)");
+		logmsg(LVL_DEBUG, "%s", f->data);
+		ws_send(sock, WS_OPCODE_PING, "PING", 4);
+		break;
+	case 0x2:
+		logmsg(LVL_DEBUG, "(websocket) DATA (binary)");
+		break;
+	default:
+		logmsg(LVL_DEBUG, "opcode 0x%x not valid for data frame", f->opcode);
+		break;
+	}
+
 	return 0;
 }
 
@@ -57,14 +74,14 @@ int ws_do_noop(int sock, ws_frame_t *f)
 
 int ws_do_ping(int sock, ws_frame_t *f)
 {
-	/* TODO */
+	/* TODO: send PONG and return data */
 	logmsg(LVL_DEBUG, "(websocket) PING");
 	return 0;
 }
 
 int ws_do_pong(int sock, ws_frame_t *f)
 {
-	/* TODO */
+	/* TODO: handle client reply to our PING */
 	logmsg(LVL_DEBUG, "(websocket) PONG");
 	return 0;
 }
@@ -245,4 +262,23 @@ int ws_select_protocol(char *header)
 	free(keys);
 
 	return WS_PROTOCOL_INVALID;
+}
+
+ssize_t ws_send(int sock, ws_opcode_t opcode, void *data, size_t len)
+{
+	uint16_t f;
+	ssize_t sent = 0;
+
+	f |= 1 << 15; /* FIN */
+	f |= opcode << 8;
+	f |= (len & 0x7f);
+	f = htons(f);
+
+	setcork(sock, 1);
+	sent += snd(sock, &f, 2, 0);
+	sent += snd(sock, ((char *)data), len, 0);
+	setcork(sock, 0);
+	logmsg(LVL_DEBUG, "%i bytes sent", sent);
+
+	return sent;
 }

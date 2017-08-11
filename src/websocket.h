@@ -112,4 +112,7 @@ int ws_read_request(int sock, ws_frame_t **f);
 /* return the first matching protocol we support */
 int ws_select_protocol(char *header);
 
+/* send some data to client, return bytes sent or -1 (error) */
+ssize_t ws_send(int sock, ws_opcode_t opcode, void *data, size_t len);
+
 #endif /* __WEBSOCKETS_H__ */

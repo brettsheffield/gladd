@@ -86,6 +86,7 @@ typedef struct config_t {
         char *authrealm;
         long daemon;         /* 0 = daemonise (default), 1 = don't detach */
         long debug;
+        long loglevel;
         char *encoding;      /* encoding to use - default UTF-8 */
         long dropprivs;      /* 1 = drop root privileges (default), 0=don't */
         long port;

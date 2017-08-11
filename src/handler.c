@@ -1692,7 +1692,6 @@ int handler_upgrade_connection_check(http_request_t *r)
 		syslog(LOG_DEBUG, "Sec-WebSocket-Protocol: '%s' requested", h);
 		proto = ws_select_protocol(h);
 		if (proto == WS_PROTOCOL_INVALID) {
-			syslog(LOG_DEBUG, "DEBUG: return code %i", proto);
 			syslog(LOG_DEBUG, "Unsupported websocket protocol requested");
 			return HANDLER_INVALID_WEBSOCKET_PROTOCOL;
 		}

@@ -43,6 +43,8 @@ typedef enum {
 #define WS_PROTOCOL(k, proto) case proto: return k;
 #define WS_PROTOCOL_SELECT(k, proto) if (strcmp(protos[i], k) == 0) return proto;
 
+extern int ws_proto;
+
 /* websocket request handler */
 int ws_handle_request(int sock);
 
@@ -50,7 +52,7 @@ int ws_handle_request(int sock);
 char *ws_protocol_name(ws_protocol_t proto);
 
 /* read websocket framing protocol */
-int ws_read_request(int sock);
+int ws_read_request(int sock, void *payload);
 
 /* return the first matching protocol we support */
 int ws_select_protocol(char *header);

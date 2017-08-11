@@ -2,7 +2,7 @@
 # 
 # this file is part of GLADD
 # 
-# Copyright (c) 2012-2016 Brett Sheffield <brett@gladserv.com>
+# Copyright (c) 2012-2017 Brett Sheffield <brett@gladserv.com>
 # 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@ MYSQLFLAGS=`mysql_config --cflags --libs`
 PROGRAM=gladd
 PREFIX=@prefix@
 INSTALL=@INSTALL@
-OBJECTFILES=args.o @autho@ config.o handler.o help.o http.o mime.o server.o signals.o string.o tls.o utils.o websocket.o xml.o
+OBJECTFILES=args.o @autho@ config.o errors.o handler.o help.o http.o log.o misc.o mime.o server.o signals.o string.o tls.o utils.o websocket.o xml.o
 TESTFILES=test.o args_test.o @authtesto@ @dbtesto@ config_test.o handler_test.o http_test.o string_test.o xml_test.o
 
 ${PROGRAM}: ${PROGRAM}_test main.o
@@ -69,6 +69,9 @@ config_test.o: minunit.h config_test.c config_test.h
 db_test.o: db_test.c db_test.h
 	${CC} ${CFLAGS} -c db_test.c
 
+errors.o: errors.c errors.h
+	${CC} ${CFLAGS} -c errors.c
+
 tls.o: tls.h @ssl@.c
 	${CC} ${CFLAGS} -o tls.o -c @ssl@.c
 
@@ -87,11 +90,17 @@ http.o: http.c http.h main.h
 http_test.o: http_test.c http_test.h
 	${CC} ${CFLAGS} -c http_test.c
 
+log.o: log.c log.h
+	${CC} ${CFLAGS} -c log.c
+
 main.o: main.c main.h handler.h config.h
 	${CC} ${CFLAGS} -c main.c
 
 mime.o: mime.c mime.h
 	${CC} ${CFLAGS} -c mime.c
+
+misc.o: misc.c misc.h
+	${CC} ${CFLAGS} -c misc.c
 
 server.o: server.c server.h
 	${CC} ${CFLAGS} -c server.c

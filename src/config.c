@@ -42,6 +42,7 @@ config_t config_default = {
         .debug          = 0,
         .dropprivs      = 1,
         .encoding       = "UTF-8",
+        .loglevel       = 15,
         .xmlpath        = ".",
         .port           = 8080,
         .pipelining     = 1,
@@ -878,6 +879,9 @@ int process_config_line(char *line)
                 if (strcmp(key, "debug") == 0) {
                         i = set_config_long(&config_new->debug,
                                                 "debug", i, 0, 1);
+                        if (config_new->debug == 1)
+	                        i = set_config_long(&config_new->loglevel,
+			                        "debug", 127, 0, 127);
                 }
                 else if (strcmp(key, "port") == 0) {
                         i = set_config_long(&config_new->port,

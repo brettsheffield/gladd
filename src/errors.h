@@ -30,7 +30,8 @@
 	X(1, ERROR_FAILURE,             "Failure")                            \
 	X(2, ERROR_WEBSOCKET_RSVBITSET, "Reserved bit set")                   \
 	X(3, ERROR_WEBSOCKET_BAD_OPCODE, "Bad opcode")                        \
-	X(4, ERROR_WEBSOCKET_UNMASKED_DATA, "Unmasked client data")
+	X(4, ERROR_WEBSOCKET_UNMASKED_DATA, "Unmasked client data")           \
+	X(5, ERROR_WEBSOCKET_CLOSE_CONNECTION, "Connection close requested")
 
 
 #define ERROR_MSG(code, name, msg) case code: return msg;

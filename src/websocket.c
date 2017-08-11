@@ -37,9 +37,9 @@ typedef struct ws_frame_header_t {
 
 int ws_do_close(int sock, ws_frame_t *f)
 {
-	/* TODO */
 	logmsg(LVL_DEBUG, "(websocket) CLOSE");
-	return 0;
+	/* TODO: handle connection close reasons */
+	return ERROR_WEBSOCKET_CLOSE_CONNECTION;
 }
 
 int ws_do_data(int sock, ws_frame_t *f)

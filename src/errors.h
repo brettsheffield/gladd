@@ -28,7 +28,9 @@
 #define ERROR_CODES(X)                                                        \
 	X(0, ERROR_SUCCESS,             "Success")                            \
 	X(1, ERROR_FAILURE,             "Failure")                            \
-	X(2, ERROR_WEBSOCKET_RSVBITSET, "Reserved bit set")
+	X(2, ERROR_WEBSOCKET_RSVBITSET, "Reserved bit set")                   \
+	X(3, ERROR_WEBSOCKET_BAD_OPCODE, "Bad opcode")                        \
+	X(4, ERROR_WEBSOCKET_UNMASKED_DATA, "Unmasked client data")
 
 
 #define ERROR_MSG(code, name, msg) case code: return msg;

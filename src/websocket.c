@@ -120,14 +120,14 @@ int ws_read_request(int sock, void *payload)
         /* %xB-F are reserved for further control frames */
         default:
                 logmsg(LVL_DEBUG, "(websocket) unknown opcode %#x received", opcode);
-		/* TODO: raise error */
+		return ERROR_WEBSOCKET_BAD_OPCODE;
                 break;
         }
 
 	if (f->f2 & 0x80)
 		logmsg(LVL_DEBUG, "(websocket) MASK");
-
-	/* TODO: fail any unmasked client frames */
+	else
+		return ERROR_WEBSOCKET_UNMASKED_DATA;
 
 	/* get payload length */
 	paylen |= (f->f2 & 0x7f);

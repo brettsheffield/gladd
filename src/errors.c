@@ -40,9 +40,9 @@ void print_error(int e, int errsv, char *errstr)
 	char buf[LINE_MAX];
 	if (errsv != 0) {
 		strerror_r(errsv, buf, sizeof(buf));
-		logmsg(LOG_SEVERE, "%s: %s", errstr, buf);
+		logmsg(LVL_SEVERE, "%s: %s", errstr, buf);
 	}
 	else if (e != 0) {
-		logmsg(LOG_SEVERE, "%s: %s", errstr, error_msg(e));
+		logmsg(LVL_SEVERE, "%s: %s", errstr, error_msg(e));
 	}
 }

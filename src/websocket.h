@@ -55,7 +55,50 @@ typedef struct ws_frame_t {
 #define WS_PROTOCOL(k, proto) case proto: return k;
 #define WS_PROTOCOL_SELECT(k, proto) if (strcmp(protos[i], k) == 0) return proto;
 
+typedef enum {
+	WS_OPCODE_NONCONTROL,
+	WS_OPCODE_CONTROL
+} ws_opcode_type_t;
+
+typedef enum {
+	WS_OPCODE_CONTINUE = 0x0,
+	WS_OPCODE_TEXT = 0x1,
+	WS_OPCODE_BINARY = 0x2,
+	WS_OPCODE_CLOSE = 0x8,
+	WS_OPCODE_PING = 0x9,
+	WS_OPCODE_PONG = 0xa
+} ws_opcode_t;
+
+#define WS_OPCODES(X) \
+	X(WS_OPCODE_CONTINUE, WS_OPCODE_NONCONTROL, "continuation frame", ws_do_data) \
+	X(WS_OPCODE_TEXT, WS_OPCODE_NONCONTROL, "text frame", ws_do_data) \
+	X(WS_OPCODE_BINARY, WS_OPCODE_NONCONTROL, "binary frame", ws_do_data) \
+	/* %x3-7 are reserved for further non-control frames */ \
+	X(WS_OPCODE_CLOSE, WS_OPCODE_CONTROL, "connection close", ws_do_close) \
+	X(WS_OPCODE_PING, WS_OPCODE_CONTROL, "ping", ws_do_ping) \
+	X(WS_OPCODE_PONG, WS_OPCODE_CONTROL, "pong", ws_do_pong)
+	/* %xB-F are reserved for further control frames */
+#undef X
+
+#define WS_OPCODE_DESC(code, type, desc, f) case code: return desc;
+#define WS_OPCODE_FUN(code, type, desc, fun) case code: err = fun(sock, f); break;
+
 extern int ws_proto;
+
+/* close websocket */
+int ws_do_close(int sock, ws_frame_t *f);
+
+/* handle data frames */
+int ws_do_data(int sock, ws_frame_t *f);
+
+/* do nothing, successfully */
+int ws_do_noop(int sock, ws_frame_t *f);
+
+/* handle ping opcode */
+int ws_do_ping(int sock, ws_frame_t *f);
+
+/* handle pong reply */
+int ws_do_pong(int sock, ws_frame_t *f);
 
 /* websocket request handler */
 int ws_handle_request(int sock);

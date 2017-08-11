@@ -35,18 +35,66 @@ typedef struct ws_frame_header_t {
 	uint8_t f2;
 } ws_frame_header_t;
 
+int ws_do_close(int sock, ws_frame_t *f)
+{
+	/* TODO */
+	logmsg(LVL_DEBUG, "(websocket) CLOSE");
+	return 0;
+}
+
+int ws_do_data(int sock, ws_frame_t *f)
+{
+	/* TODO */
+	logmsg(LVL_DEBUG, "(websocket) DATA");
+	return 0;
+}
+
+int ws_do_noop(int sock, ws_frame_t *f)
+{
+	logmsg(LVL_DEBUG, "(websocket) NOOP");
+	return 0;
+}
+
+int ws_do_ping(int sock, ws_frame_t *f)
+{
+	/* TODO */
+	logmsg(LVL_DEBUG, "(websocket) PING");
+	return 0;
+}
+
+int ws_do_pong(int sock, ws_frame_t *f)
+{
+	/* TODO */
+	logmsg(LVL_DEBUG, "(websocket) PONG");
+	return 0;
+}
+
 int ws_handle_request(int sock)
 {
 	int err;
 	ws_frame_t *f = NULL;
 
 	err = ws_read_request(sock, &f);
-	if (err == 0)
-		/* TODO: process request */
-
+	if (err == 0) {
+	        switch (f->opcode) {
+			WS_OPCODES(WS_OPCODE_FUN)
+		default:
+			logmsg(LVL_DEBUG, "(websocket) unknown opcode %#x received", f->opcode);
+			err = ERROR_WEBSOCKET_BAD_OPCODE;
+			break;
+		}
+	}
 	free(f);
 
 	return err;
+}
+
+char *ws_opcode_desc(ws_opcode_t code)
+{
+	switch (code) {
+		WS_OPCODES(WS_OPCODE_DESC)
+	}
+	return NULL;
 }
 
 char *ws_protocol_name(ws_protocol_t proto)

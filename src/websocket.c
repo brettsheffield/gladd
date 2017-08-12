@@ -22,6 +22,7 @@
 
 #include "errors.h"
 #include "handler.h"
+#include "librecast.h"
 #include "log.h"
 #include "string.h"
 #include "websocket.h"
@@ -45,22 +46,10 @@ int ws_do_close(int sock, ws_frame_t *f)
 
 int ws_do_data(int sock, ws_frame_t *f)
 {
-	/* TODO */
-	switch (f->opcode) {
-	case 0x0:
-		logmsg(LVL_DEBUG, "(websocket) DATA (continuation frame)");
-		return ERROR_WEBSOCKET_UNEXPECTED_CONTINUE;
-	case 0x1:
-		logmsg(LVL_DEBUG, "(websocket) DATA (text)");
-		break;
-	case 0x2:
-		logmsg(LVL_DEBUG, "(websocket) DATA (binary)");
-		break;
-	default:
-		logmsg(LVL_DEBUG, "opcode 0x%x not valid for data frame", f->opcode);
-		break;
+	logmsg(LVL_DEBUG, "(websocket) protocol: %s", ws_protocol_name(ws_proto));
+	switch (ws_proto) {
+		WS_PROTOCOLS(WS_PROTOCOL_FUN)
 	}
-
 	return 0;
 }
 
@@ -82,6 +71,25 @@ int ws_do_pong(int sock, ws_frame_t *f)
 	/* TODO: handle client reply to our PING */
 	logmsg(LVL_DEBUG, "(websocket) PONG");
 	return ERROR_WEBSOCKET_UNEXPECTED_PONG;
+}
+
+int ws_handle_client_data(int sock, ws_frame_t *f)
+{
+	switch (f->opcode) {
+	case 0x0:
+		logmsg(LVL_DEBUG, "(websocket) DATA (continuation frame)");
+		return ERROR_WEBSOCKET_UNEXPECTED_CONTINUE;
+	case 0x1:
+		logmsg(LVL_DEBUG, "(websocket) DATA (text)");
+		break;
+	case 0x2:
+		logmsg(LVL_DEBUG, "(websocket) DATA (binary)");
+		break;
+	default:
+		logmsg(LVL_DEBUG, "opcode 0x%x not valid for data frame", f->opcode);
+		break;
+	}
+	return 0;
 }
 
 int ws_handle_request(int sock)

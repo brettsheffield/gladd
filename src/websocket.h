@@ -20,8 +20,8 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __WEBSOCKETS_H__
-#define __WEBSOCKETS_H__ 1
+#ifndef __WEBSOCKET_H__
+#define __WEBSOCKET_H__ 1
 
 #include "http.h"
 #include <stdint.h>
@@ -48,12 +48,13 @@ typedef struct ws_frame_t {
 } ws_frame_t;
 
 #define WS_PROTOCOLS(X) \
-	X("none", WS_PROTOCOL_NONE) \
-	X("librecast", WS_PROTOCOL_LIBRECAST)
+	X("none", WS_PROTOCOL_NONE, ws_handle_client_data) \
+	X("librecast", WS_PROTOCOL_LIBRECAST, lc_handle_client_data)
 #undef X
 
-#define WS_PROTOCOL(k, proto) case proto: return k;
-#define WS_PROTOCOL_SELECT(k, proto) if (strcmp(protos[i], k) == 0) return proto;
+#define WS_PROTOCOL(k, proto, fun) case proto: return k;
+#define WS_PROTOCOL_FUN(k, proto, fun) case proto: return fun(sock, f);
+#define WS_PROTOCOL_SELECT(k, proto, fun) if (strcmp(protos[i], k) == 0) return proto;
 
 typedef enum {
 	WS_OPCODE_NONCONTROL,
@@ -85,7 +86,7 @@ typedef enum {
 
 extern int ws_proto;
 
-/* close websocket */
+/* handle client close request */
 int ws_do_close(int sock, ws_frame_t *f);
 
 /* handle data frames */
@@ -94,11 +95,14 @@ int ws_do_data(int sock, ws_frame_t *f);
 /* do nothing, successfully */
 int ws_do_noop(int sock, ws_frame_t *f);
 
-/* handle ping opcode */
+/* handle client ping */
 int ws_do_ping(int sock, ws_frame_t *f);
 
-/* handle pong reply */
+/* handle client pong reply */
 int ws_do_pong(int sock, ws_frame_t *f);
+
+/* default protocol handler for client data */
+int ws_handle_client_data(int sock, ws_frame_t *f);
 
 /* websocket request handler */
 int ws_handle_request(int sock);
@@ -115,4 +119,4 @@ int ws_select_protocol(char *header);
 /* send some data to client, return bytes sent or -1 (error) */
 ssize_t ws_send(int sock, ws_opcode_t opcode, void *data, size_t len);
 
-#endif /* __WEBSOCKETS_H__ */
+#endif /* __WEBSOCKET_H__ */

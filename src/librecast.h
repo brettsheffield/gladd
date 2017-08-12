@@ -28,7 +28,36 @@
 #include <librecast.h>
 #include <stdint.h>
 
+typedef enum {
+	LC_TEXT_CMD_JOIN = 1,
+	LC_TEXT_CMD_PART = 2,
+	LC_TEXT_CMD_SEND = 3
+} lcast_text_cmd_t;
+
+#define LCAST_TEXT_CMDS(X) \
+	X(LCAST_TEXT_CMD_JOIN, "/join ", lcast_cmd_join) \
+	X(LCAST_TEXT_CMD_PART, "/part ", lcast_cmd_part) \
+	X(LCAST_TEXT_CMD_SEND, "/send ", lcast_cmd_send)
+#undef X
+
+#define LCAST_TEXT_CMD(code, cmd, fun) if (strncmp(f->data, cmd, strlen(cmd))==0) return fun(sock, f, f->data + strlen(cmd));
+
+/* join librecast channel */
+int lcast_cmd_join(int sock, ws_frame_t *f, void *data);
+
+/* leave librecast channel */
+int lcast_cmd_part(int sock, ws_frame_t *f, void *data);
+
+/* send message */
+int lcast_cmd_send(int sock, ws_frame_t *f, void *data);
+
+/* process client command */
+int lcast_do_cmd(int sock, ws_frame_t *f);
+
 /* deal with incoming client data frames */
-int lc_handle_client_data(int sock, ws_frame_t *f);
+int lcast_handle_client_data(int sock, ws_frame_t *f);
+
+/* initialize librecast context and socket */
+void lcast_init();
 
 #endif /* __LIBRECAST_H__ */

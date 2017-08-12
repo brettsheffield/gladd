@@ -28,12 +28,13 @@
 #define ERROR_CODES(X)                                                         \
 	X(0, ERROR_SUCCESS,                       "Success")                   \
 	X(1, ERROR_FAILURE,                       "Failure")                   \
-	X(2, ERROR_WEBSOCKET_RSVBITSET,           "Reserved bit set")          \
-	X(3, ERROR_WEBSOCKET_BAD_OPCODE,          "Bad opcode")                \
-	X(4, ERROR_WEBSOCKET_UNMASKED_DATA,       "Unmasked client data")      \
-	X(5, ERROR_WEBSOCKET_CLOSE_CONNECTION,    "Connection close requested") \
-	X(6, ERROR_WEBSOCKET_UNEXPECTED_CONTINUE, "Unexpected continuation frame") \
-	X(7, ERROR_WEBSOCKET_UNEXPECTED_PONG,     "Unexpected pong frame")
+	X(2, ERROR_NOT_IMPLEMENTED,               "Not implemented")           \
+	X(3, ERROR_WEBSOCKET_RSVBITSET,           "Reserved bit set")          \
+	X(4, ERROR_WEBSOCKET_BAD_OPCODE,          "Bad opcode")                \
+	X(5, ERROR_WEBSOCKET_UNMASKED_DATA,       "Unmasked client data")      \
+	X(6, ERROR_WEBSOCKET_CLOSE_CONNECTION,    "Connection close requested") \
+	X(7, ERROR_WEBSOCKET_UNEXPECTED_CONTINUE, "Unexpected continuation frame") \
+	X(8, ERROR_WEBSOCKET_UNEXPECTED_PONG,     "Unexpected pong frame")
 
 
 #define ERROR_MSG(code, name, msg) case code: return msg;

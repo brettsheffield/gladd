@@ -55,7 +55,7 @@ typedef struct ws_frame_t {
 #else
 #define WS_PROTOCOLS(X) \
 	X("none", WS_PROTOCOL_NONE, ws_handle_client_data) \
-	X("librecast", WS_PROTOCOL_LIBRECAST, lc_handle_client_data)
+	X("librecast", WS_PROTOCOL_LIBRECAST, lcast_handle_client_data)
 #endif
 #undef X
 

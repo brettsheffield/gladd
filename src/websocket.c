@@ -72,7 +72,7 @@ int ws_do_pong(int sock, ws_frame_t *f)
 {
 	/* TODO: handle client reply to our PING */
 	logmsg(LVL_DEBUG, "(websocket) PONG");
-	return ERROR_WEBSOCKET_UNEXPECTED_PONG;
+	return 0;
 }
 
 int ws_handle_client_data(int sock, ws_frame_t *f)

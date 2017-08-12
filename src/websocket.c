@@ -22,7 +22,9 @@
 
 #include "errors.h"
 #include "handler.h"
+#ifndef _NLIBRECAST
 #include "librecast.h"
+#endif
 #include "log.h"
 #include "string.h"
 #include "websocket.h"

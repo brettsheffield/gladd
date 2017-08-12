@@ -50,7 +50,7 @@ lc_channel_t *lcast_channel_byname(char *name)
 {
 	lcast_chan_t *p = lchan;
 
-	while(p) {
+	while (p) {
 		if (strcmp(p->name, name) == 0)
 			return p->chan;
 		p = p->next;
@@ -68,7 +68,7 @@ lc_channel_t *lcast_channel_new(char *name)
 	lcast_init();
 
 	/* check for existing channel */
-	while(p) {
+	while (p) {
 		chan = p;
 		if (strcmp(p->name, name) == 0)
 			return p->chan;
@@ -96,6 +96,17 @@ lc_channel_t *lcast_channel_new(char *name)
 
 void lcast_channel_free(char *name)
 {
+	lcast_chan_t *p = lchan;
+	while (p) {
+		if (strcmp(p->name, name) == 0)
+			break;
+		p = p->next;
+	}
+	if (p) {
+		lc_channel_free(p->chan);
+		free(p->name);
+		free(p);
+	}
 }
 
 int lcast_cmd_join(int sock, ws_frame_t *f, void *data)
@@ -129,6 +140,7 @@ int lcast_cmd_part(int sock, ws_frame_t *f, void *data)
 	}
 
 	lc_channel_leave(chan);
+	lcast_channel_free((char *)data);
 
 	return 0;
 }

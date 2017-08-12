@@ -2,7 +2,7 @@
 # 
 # this file is part of GLADD
 # 
-# Copyright (c) 2012-2016 Brett Sheffield <brett@gladserv.com>
+# Copyright (c) 2012-2017 Brett Sheffield <brett@gladserv.com>
 # 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -38,7 +38,9 @@ AC_ARG_WITH(mysql, [ --without-mysql disable mysql])
 AC_ARG_WITH(tds, [ --without-tds disable tds support])
 AC_ARG_WITH(openldap, [ --without-openldap disable openldap])
 AC_ARG_WITH(xml, [ --without-xml disable xml support])
+AC_ARG_WITH(librecast, [ --without-librecast disable librecast support])
 
+withlibrecast=1
 withauth=0
 withpam=0
 AC_CHECK_LIB([b64], [base64_decode_block], [withauth=1] , [withauth=0])
@@ -176,6 +178,25 @@ else
 	,
 		AC_MSG_WARN([openldap not found - disabling])
 		AC_SUBST(openldap, -D_NLDAP)
+	)
+fi
+
+if test "$with_librecast" == "no"
+then
+	withlibrecast=0
+fi
+
+if test "$withlibrecast" == "0"
+then
+	AC_MSG_NOTICE([disabling librecast support])
+	AC_SUBST(librecast, -D_NLIBRECAST)
+else
+	AC_CHECK_LIB([librecast], [lc_ctx_new],
+		AC_SUBST(librecasto, librecast.o)
+		AC_SUBST(liblibrecast, -llibrecast)
+	,
+		AC_MSG_WARN([librecast not found - disabling])
+		AC_SUBST(librecast, -D_NLIBRECAST)
 	)
 fi
 

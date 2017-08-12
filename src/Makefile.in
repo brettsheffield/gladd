@@ -28,14 +28,15 @@ CC=gcc
 # -D_NLDIF => compile without ldif support
 # -D_NXML  => compile without xml support
 # -D_GIT   => compile with libgit2 support
-CFLAGS=-g -Wall -Werror @cflagssl@ @ldif@ @postgres@ @mysql@ @openldap@ @xml@ @cflagmysql@ @auth@ @libgladdb@ @git@
+# -D_NLIBRECAST => compile without librecast support
+CFLAGS=-g -Wall -Werror @cflagssl@ @ldif@ @postgres@ @mysql@ @openldap@ @xml@ @cflagmysql@ @auth@ @libgladdb@ @git@ @librecast@
 INCLUDES=@incxml@ @incpostgres@ -L/usr/local/lib -L/usr/lib
-LIBS=-L/usr/lib/x86_64-linux-gnu @libxml@ -lxslt -lcurl @libopenldap@ @lb64@ @lgladdb@ @libpg@ -lrt @libtds@ @libmysql@ @libpam@ @libssl@ -luuid `pkg-config --libs openssl` @libldif@ @lgit2@ -llibrecast
+LIBS=-L/usr/lib/x86_64-linux-gnu @libxml@ -lxslt -lcurl @libopenldap@ @lb64@ @lgladdb@ @libpg@ -lrt @libtds@ @libmysql@ @libpam@ @libssl@ -luuid `pkg-config --libs openssl` @libldif@ @lgit2@ @liblibrecast@
 MYSQLFLAGS=`mysql_config --cflags --libs`
 PROGRAM=gladd
 PREFIX=@prefix@
 INSTALL=@INSTALL@
-OBJECTFILES=args.o @autho@ config.o errors.o handler.o help.o http.o librecast.o log.o misc.o mime.o server.o signals.o string.o tls.o utils.o websocket.o xml.o
+OBJECTFILES=args.o @autho@ config.o errors.o handler.o help.o http.o @librecasto@ log.o misc.o mime.o server.o signals.o string.o tls.o utils.o websocket.o xml.o
 TESTFILES=test.o args_test.o @authtesto@ @dbtesto@ config_test.o handler_test.o http_test.o string_test.o xml_test.o
 
 ${PROGRAM}: ${PROGRAM}_test main.o

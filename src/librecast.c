@@ -40,58 +40,23 @@ typedef struct lcast_chan_t {
 lc_ctx_t *lctx = NULL;
 lc_socket_t *lsock = NULL;
 lcast_chan_t *lchan = NULL;
-lc_channel_t *chan_selected = NULL;
+lcast_chan_t *chan_selected = NULL;
 
-lc_channel_t *lcast_channel_byname(char *name);
-lc_channel_t *lcast_channel_new(char *name);
+lcast_chan_t *lcast_channel_byname(char *name);
+lcast_chan_t *lcast_channel_new(char *name);
 
 /* fetch channel by name */
-lc_channel_t *lcast_channel_byname(char *name)
+lcast_chan_t *lcast_channel_byname(char *name)
 {
 	lcast_chan_t *p = lchan;
 
 	while (p) {
 		if (strcmp(p->name, name) == 0)
-			return p->chan;
+			return p;
 		p = p->next;
 	}
 
 	return NULL;
-}
-
-/* create or fetch channel */
-lc_channel_t *lcast_channel_new(char *name)
-{
-	lcast_chan_t *chan = NULL;
-	lcast_chan_t *p = lchan;
-
-	lcast_init();
-
-	/* check for existing channel */
-	while (p) {
-		chan = p;
-		if (strcmp(p->name, name) == 0)
-			return p->chan;
-		p = p->next;
-	}
-	p = chan;
-
-	/* no such channel, create it */
-	logmsg(LVL_DEBUG, "(librecast) CREATE channel '%s'", name);
-	chan = calloc(1, sizeof(struct lcast_chan_t));
-	chan->chan = lc_channel_new(lctx, name);
-	chan->name = strdup(name);
-	chan->next = NULL;
-
-	if (p)
-		p->next = chan;
-
-	if (lchan == NULL)
-		lchan = chan;
-
-	lc_channel_bind(lsock, lchan->chan);
-
-	return chan->chan;
 }
 
 void lcast_channel_free(char *name)
@@ -109,14 +74,48 @@ void lcast_channel_free(char *name)
 	}
 }
 
+/* create or fetch channel */
+lcast_chan_t *lcast_channel_new(char *name)
+{
+	lcast_chan_t *chan = NULL;
+	lcast_chan_t *p = lchan;
+
+	lcast_init();
+
+	/* check for existing channel */
+	while (p) {
+		chan = p;
+		if (strcmp(p->name, name) == 0)
+			return p;
+		p = p->next;
+	}
+	p = chan;
+
+	/* no such channel, create it */
+	logmsg(LVL_DEBUG, "(librecast) CREATE channel '%s'", name);
+	chan = calloc(1, sizeof(struct lcast_chan_t));
+	chan->chan = lc_channel_new(lctx, name);
+	chan->name = strdup(name);
+
+	if (p)
+		p->next = chan;
+
+	if (lchan == NULL)
+		lchan = chan;
+
+	lc_channel_bind(lsock, lchan->chan);
+
+	return chan;
+}
+
 int lcast_cmd_join(int sock, ws_frame_t *f, void *data)
 {
-	lc_channel_t *chan;
+	lcast_chan_t *chan;
 
 	logmsg(LVL_DEBUG, "(librecast) JOIN channel '%s'", (char *)data);
 
 	chan = lcast_channel_new((char *) data);
-	lc_channel_join(chan);
+	lc_channel_join(chan->chan);
 
 	/* set as default channel if no other selected */
 	if (chan_selected == NULL)
@@ -127,7 +126,7 @@ int lcast_cmd_join(int sock, ws_frame_t *f, void *data)
 
 int lcast_cmd_part(int sock, ws_frame_t *f, void *data)
 {
-	lc_channel_t *chan;
+	lcast_chan_t *chan;
 
 	logmsg(LVL_DEBUG, "(librecast) PART channel '%s'", (char *)data);
 	if (lctx == NULL)
@@ -138,8 +137,7 @@ int lcast_cmd_part(int sock, ws_frame_t *f, void *data)
 		logmsg(LVL_ERROR, "No such channel");
 		return 0;
 	}
-
-	lc_channel_leave(chan);
+	lc_channel_leave(chan->chan);
 	lcast_channel_free((char *)data);
 
 	return 0;
@@ -152,7 +150,7 @@ int lcast_cmd_send(int sock, ws_frame_t *f, void *data)
 		return 0;
 	}
 	logmsg(LVL_DEBUG, "(librecast) SEND");
-	lc_msg_send(chan_selected, (char *)data, strlen((char *)data));
+	lc_msg_send(chan_selected->chan, (char *)data, strlen((char *)data));
 
 	return 0;
 }

@@ -274,7 +274,7 @@ int ws_select_protocol(char *header)
 
 ssize_t ws_send(int sock, ws_opcode_t opcode, void *data, size_t len)
 {
-	uint16_t f;
+	uint16_t f = 0;
 	ssize_t sent = 0;
 
 	f |= 1 << 15; /* FIN */

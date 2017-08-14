@@ -27,6 +27,12 @@
 #include "log.h"
 #include "errors.h"
 
+int error_log(int e, int level)
+{
+	logmsg(level, "%s", error_msg(e));
+	return e;
+}
+
 char *error_msg(int e)
 {
 	switch (e) {

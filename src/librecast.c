@@ -120,15 +120,18 @@ int lcast_cmd_join(int sock, ws_frame_t *f, void *data)
 	lcast_chan_t *chan;
 
 	logmsg(LVL_DEBUG, "(librecast) JOIN channel '%s'", (char *)data);
-
 	chan = lcast_channel_new((char *) data);
+	if (chan == NULL)
+		return error_log(LVL_ERROR, ERROR_LIBRECAST_CHANNEL_NOT_CREATED);
 	lc_channel_join(chan->chan);
 
 	/* set as default channel if no other selected */
 	if (chan_selected == NULL)
 		chan_selected = chan;
 
-	assert(sock != 0);
+	if (sock == 0)
+		return error_log(LVL_ERROR, ERROR_LIBRECAST_NO_SOCKET);
+
 	websock = sock;
 	lc_socket_listen(lc_channel_socket(chan->chan), lcast_recv, lcast_recv_err);
 
@@ -141,12 +144,11 @@ int lcast_cmd_part(int sock, ws_frame_t *f, void *data)
 
 	logmsg(LVL_DEBUG, "(librecast) PART channel '%s'", (char *)data);
 	if (lctx == NULL)
-		return 0;
+		return error_log(LVL_ERROR, ERROR_LIBRECAST_CONTEXT_NULL);
 
 	chan = lcast_channel_byname((char *)data);
 	if (chan == NULL) {
-		logmsg(LVL_ERROR, "No such channel");
-		return 0;
+		return error_log(LVL_ERROR, ERROR_LIBRECAST_CHANNEL_NOT_EXIST);
 	}
 	lc_channel_leave(chan->chan);
 	lcast_channel_free((char *)data);
@@ -156,10 +158,8 @@ int lcast_cmd_part(int sock, ws_frame_t *f, void *data)
 
 int lcast_cmd_send(int sock, ws_frame_t *f, void *data)
 {
-	if (chan_selected == NULL) {
-		logmsg(LVL_ERROR, "No channel selected");
-		return 0;
-	}
+	if (chan_selected == NULL)
+		return error_log(LVL_ERROR, ERROR_LIBRECAST_CHANNEL_NOT_SELECTED);
 	logmsg(LVL_DEBUG, "(librecast) SEND");
 	lc_msg_send(chan_selected->chan, (char *)data, strlen((char *)data));
 
@@ -179,19 +179,18 @@ int lcast_do_cmd(int sock, ws_frame_t *f)
 
 int lcast_handle_client_data(int sock, ws_frame_t *f)
 {
-	logmsg(LVL_DEBUG, "lc_handle_client_data()");
+	logmsg(LVL_DEBUG, "lc_handle_client_data() has opcode 0x%x", f->opcode);
 
         switch (f->opcode) {
         case 0x0:
                 logmsg(LVL_DEBUG, "(librecast) DATA (continuation frame)");
-                return ERROR_WEBSOCKET_UNEXPECTED_CONTINUE;
+		return error_log(LVL_ERROR, ERROR_WEBSOCKET_UNEXPECTED_CONTINUE);
         case 0x1:
                 logmsg(LVL_DEBUG, "(librecast) DATA (text)");
-                lcast_do_cmd(sock, f);
-                break;
+                return lcast_do_cmd(sock, f);
         case 0x2:
                 logmsg(LVL_DEBUG, "(librecast) DATA (binary)");
-                return ERROR_NOT_IMPLEMENTED;
+		return error_log(LVL_ERROR, ERROR_NOT_IMPLEMENTED);
         default:
                 logmsg(LVL_DEBUG, "opcode 0x%x not valid for data frame", f->opcode);
                 break;

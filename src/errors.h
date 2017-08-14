@@ -29,12 +29,19 @@
 	X(0, ERROR_SUCCESS,                       "Success")                   \
 	X(1, ERROR_FAILURE,                       "Failure")                   \
 	X(2, ERROR_NOT_IMPLEMENTED,               "Not implemented")           \
-	X(3, ERROR_WEBSOCKET_RSVBITSET,           "Reserved bit set")          \
-	X(4, ERROR_WEBSOCKET_BAD_OPCODE,          "Bad opcode")                \
-	X(5, ERROR_WEBSOCKET_UNMASKED_DATA,       "Unmasked client data")      \
-	X(6, ERROR_WEBSOCKET_CLOSE_CONNECTION,    "Connection close requested") \
-	X(7, ERROR_WEBSOCKET_UNEXPECTED_CONTINUE, "Unexpected continuation frame") \
-	X(8, ERROR_WEBSOCKET_UNEXPECTED_PONG,     "Unexpected pong frame")
+	X(3, ERROR_WEBSOCKET_RSVBITSET,           "(websocket) Reserved bit set")          \
+	X(4, ERROR_WEBSOCKET_BAD_OPCODE,          "(websocket) Bad opcode")                \
+	X(5, ERROR_WEBSOCKET_UNMASKED_DATA,       "(websocket) Unmasked client data")      \
+	X(6, ERROR_WEBSOCKET_CLOSE_CONNECTION,    "(websocket) Connection close requested") \
+	X(7, ERROR_WEBSOCKET_UNEXPECTED_CONTINUE, "(websocket) Unexpected continuation frame") \
+	X(8, ERROR_WEBSOCKET_UNEXPECTED_PONG,     "(websocket) Unexpected pong frame") \
+	X(9, ERROR_LIBRECAST_CONTEXT_NULL,        "(librecast) Operation on null context") \
+	X(10, ERROR_LIBRECAST_CHANNEL_NOT_EXIST,  "(librecast) No such channel") \
+	X(11, ERROR_LIBRECAST_CHANNEL_NOT_SELECTED, "(librecast) No channel selected") \
+	X(12, ERROR_LIBRECAST_CHANNEL_NOT_CREATED, "(librecast) Unable to create channel") \
+	X(13, ERROR_LIBRECAST_CHANNEL_NOT_JOINED, "(librecast) Unable to join channel") \
+	X(14, ERROR_LIBRECAST_LISTEN_FAIL,        "(librecast) Listen failed on socket") \
+	X(15, ERROR_LIBRECAST_NO_SOCKET,          "(librecast) No socket")
 
 
 #define ERROR_MSG(code, name, msg) case code: return msg;
@@ -42,6 +49,9 @@
 enum {
 	ERROR_CODES(ERROR_ENUM)
 };
+
+/* log message and return code */
+int error_log(int e, int level);
 
 /* return human readable error message for e */
 char *error_msg(int e);

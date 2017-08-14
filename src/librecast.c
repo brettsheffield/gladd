@@ -27,6 +27,7 @@
 #include "string.h"
 
 #include <arpa/inet.h>
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -37,6 +38,7 @@ typedef struct lcast_chan_t {
         struct lcast_chan_t *next;
 } lcast_chan_t;
 
+int websock = 0;
 lc_ctx_t *lctx = NULL;
 lc_socket_t *lsock = NULL;
 lcast_chan_t *lchan = NULL;
@@ -44,6 +46,8 @@ lcast_chan_t *chan_selected = NULL;
 
 lcast_chan_t *lcast_channel_byname(char *name);
 lcast_chan_t *lcast_channel_new(char *name);
+void lcast_recv(char *msg, ssize_t len);
+void lcast_recv_err(int err);
 
 /* fetch channel by name */
 lcast_chan_t *lcast_channel_byname(char *name)
@@ -103,7 +107,10 @@ lcast_chan_t *lcast_channel_new(char *name)
 	if (lchan == NULL)
 		lchan = chan;
 
-	lc_channel_bind(lsock, lchan->chan);
+	if (lc_channel_bind(lsock, lchan->chan) != 0) {
+		free(chan);
+		return NULL;
+	}
 
 	return chan;
 }
@@ -120,6 +127,10 @@ int lcast_cmd_join(int sock, ws_frame_t *f, void *data)
 	/* set as default channel if no other selected */
 	if (chan_selected == NULL)
 		chan_selected = chan;
+
+	assert(sock != 0);
+	websock = sock;
+	lc_socket_listen(lc_channel_socket(chan->chan), lcast_recv, lcast_recv_err);
 
 	return 0;
 }
@@ -193,6 +204,20 @@ void lcast_init()
 {
 	if (lctx == NULL)
 		lctx = lc_ctx_new();
-	if (lsock == NULL)
+	if (lsock == NULL) {
 		lsock = lc_socket_new(lctx);
+		logmsg(LVL_DEBUG, "setting socket in lcast_init to %i", lc_socket_raw(lsock));
+	}
+}
+
+void lcast_recv(char *msg, ssize_t len)
+{
+	logmsg(LVL_DEBUG, "lcast_recv: %s", msg);
+	ws_send(websock, WS_OPCODE_TEXT, msg, len);
+}
+
+void lcast_recv_err(int err)
+{
+	/* TODO: fetch error from librecast */
+	logmsg(LVL_DEBUG, "lcast_recv_err(): %i", err);
 }

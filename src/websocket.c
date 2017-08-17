@@ -284,7 +284,7 @@ ssize_t ws_send(int sock, ws_opcode_t opcode, void *data, size_t len)
 
 	setcork(sock, 1);
 	sent += snd(sock, &f, 2, 0);
-	sent += snd(sock, ((char *)data), len, 0);
+	sent += snd(sock, data, len, 0);
 	setcork(sock, 0);
 	logmsg(LVL_DEBUG, "%i bytes sent", sent);
 

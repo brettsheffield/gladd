@@ -232,7 +232,7 @@ int lcast_frame_send(int sock, lcast_frame_t *req, char *payload, uint32_t payle
 	memcpy(buf, msg, len_head);
 	if (payload && paylen > 0) {
 		body = buf + len_head;
-		memcpy(body, &payload, len_body);
+		memcpy(body, payload, len_body);
 	}
 
 	logmsg(LVL_DEBUG, "lcast_frame_send sending %i bytes (head)", len_head);
@@ -425,7 +425,7 @@ int lcast_cmd_handler(int sock, ws_frame_t *f)
 
 	lcast_frame_decode(f, &req);
 	payload = calloc(1, req->len + 1);
-	bcopy(&data, &payload, req->len);
+	bcopy(data, payload, req->len);
 	lcast_cmd_debug(req, payload);
 
 	switch (req->opcode) {

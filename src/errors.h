@@ -41,8 +41,11 @@
 	X(12, ERROR_LIBRECAST_CHANNEL_NOT_CREATED, "(librecast) Unable to create channel") \
 	X(13, ERROR_LIBRECAST_CHANNEL_NOT_JOINED, "(librecast) Unable to join channel") \
 	X(14, ERROR_LIBRECAST_LISTEN_FAIL,        "(librecast) Listen failed on socket") \
-	X(15, ERROR_LIBRECAST_NO_SOCKET,          "(librecast) No socket")
-
+	X(15, ERROR_LIBRECAST_NO_SOCKET,          "(librecast) No socket") \
+	X(16, ERROR_LIBRECAST_OPCODE_INVALID,     "(librecast) Invalid opcode") \
+	X(17, ERROR_LIBRECAST_SOCKET_NOT_CREATED, "(librecast) Unable to create socket") \
+	X(18, ERROR_LIBRECAST_INVALID_SOCKET_ID,  "(librecast) Invalid socket id")
+#undef X
 
 #define ERROR_MSG(code, name, msg) case code: return msg;
 #define ERROR_ENUM(code, name, msg) name = code,
@@ -51,7 +54,7 @@ enum {
 };
 
 /* log message and return code */
-int error_log(int e, int level);
+int error_log(int level, int e);
 
 /* return human readable error message for e */
 char *error_msg(int e);

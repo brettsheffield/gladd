@@ -27,7 +27,7 @@
 #include "log.h"
 #include "errors.h"
 
-int error_log(int e, int level)
+int error_log(int level, int e)
 {
 	logmsg(level, "%s", error_msg(e));
 	return e;

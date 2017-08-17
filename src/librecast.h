@@ -28,31 +28,80 @@
 #include <librecast.h>
 #include <stdint.h>
 
-typedef enum {
-	LC_TEXT_CMD_JOIN = 1,
-	LC_TEXT_CMD_PART = 2,
-	LC_TEXT_CMD_SEND = 3
-} lcast_text_cmd_t;
+typedef struct lcast_frame_t {
+	uint8_t opcode;
+	uint32_t len;
+	uint32_t id;
+	uint32_t id2;
+	uint32_t token;
+} __attribute__((__packed__)) lcast_frame_t;
 
-#define LCAST_TEXT_CMDS(X) \
-	X(LCAST_TEXT_CMD_JOIN, "/join ", lcast_cmd_join) \
-	X(LCAST_TEXT_CMD_PART, "/part ", lcast_cmd_part) \
-	X(LCAST_TEXT_CMD_SEND, "/send ", lcast_cmd_send)
+typedef enum {
+	LCAST_OP_NOOP                   = 0x01,
+	LCAST_OP_SETOPT                 = 0x02,
+	LCAST_OP_SOCKET_NEW             = 0x03,
+	LCAST_OP_SOCKET_SETOPT          = 0x04,
+	LCAST_OP_SOCKET_LISTEN          = 0x05,
+	LCAST_OP_SOCKET_IGNORE          = 0x06,
+	LCAST_OP_SOCKET_CLOSE           = 0x07,
+	LCAST_OP_SOCKET_MSG             = 0x08,
+	LCAST_OP_CHANNEL_NEW            = 0x09,
+	LCAST_OP_CHANNEL_SETOPT         = 0x0a,
+	LCAST_OP_CHANNEL_BIND           = 0x0b,
+	LCAST_OP_CHANNEL_UNBIND         = 0x0c,
+	LCAST_OP_CHANNEL_JOIN           = 0x0d,
+	LCAST_OP_CHANNEL_PART           = 0x0e,
+	LCAST_OP_CHANNEL_SEND           = 0x0f
+} lcast_opcode_t;
+
+#define LCAST_OPCODES(X) \
+	X(LCAST_OP_NOOP,           "NOOP",           lcast_cmd_noop) \
+	X(LCAST_OP_SETOPT,         "SETOPT",         lcast_cmd_noop) \
+	X(LCAST_OP_SOCKET_NEW,     "SOCKET_NEW",     lcast_cmd_socket_new) \
+	X(LCAST_OP_SOCKET_SETOPT,  "SOCKET_SETOPT",  lcast_cmd_socket_setopt) \
+	X(LCAST_OP_SOCKET_LISTEN,  "SOCKET_LISTEN",  lcast_cmd_socket_listen) \
+	X(LCAST_OP_SOCKET_IGNORE,  "SOCKET_IGNORE",  lcast_cmd_socket_ignore) \
+	X(LCAST_OP_SOCKET_CLOSE,   "SOCKET_CLOSE",   lcast_cmd_socket_close) \
+	X(LCAST_OP_SOCKET_MSG,     "SOCKET_MSG",     lcast_cmd_noop) \
+	X(LCAST_OP_CHANNEL_NEW,    "CHANNEL_NEW",    lcast_cmd_channel_new) \
+	X(LCAST_OP_CHANNEL_SETOPT, "CHANNEL_SETOPT", lcast_cmd_channel_setop) \
+	X(LCAST_OP_CHANNEL_BIND,   "CHANNEL_BIND",   lcast_cmd_channel_bind) \
+	X(LCAST_OP_CHANNEL_UNBIND, "CHANNEL_UNBIND", lcast_cmd_channel_unbind) \
+	X(LCAST_OP_CHANNEL_JOIN,   "CHANNEL_JOIN",   lcast_cmd_channel_join) \
+	X(LCAST_OP_CHANNEL_PART,   "CHANNEL_PART",   lcast_cmd_channel_part) \
+	X(LCAST_OP_CHANNEL_SEND,   "CHANNEL_SEND",   lcast_cmd_channel_send)
 #undef X
 
 #define LCAST_TEXT_CMD(code, cmd, fun) if (strncmp(f->data, cmd, strlen(cmd))==0) return fun(sock, f, f->data + strlen(cmd));
 
-/* join librecast channel */
-int lcast_cmd_join(int sock, ws_frame_t *f, void *data);
+#define LCAST_OP_CODE(code, cmd, fun) if (code == opcode) return cmd;
+#define LCAST_OP_FUN(code, cmd, fun) case code: logmsg(LVL_DEBUG, "%s", cmd); fun(sock, req, payload); break;
 
-/* leave librecast channel */
-int lcast_cmd_part(int sock, ws_frame_t *f, void *data);
+/* return cmd name from opcode */
+char *lcast_cmd_name(lcast_opcode_t opcode);
 
-/* send message */
-int lcast_cmd_send(int sock, ws_frame_t *f, void *data);
+/* debug logs */
+void lcast_cmd_debug(lcast_frame_t *req, char *payload);
+
+int lcast_cmd_noop(int sock, lcast_frame_t *req, char *payload);
+/* channel commands */
+int lcast_cmd_channel_bind(int sock, lcast_frame_t *req, char *payload);
+int lcast_cmd_channel_join(int sock, lcast_frame_t *req, char *payload);
+int lcast_cmd_channel_new(int sock, lcast_frame_t *req, char *payload);
+int lcast_cmd_channel_part(int sock, lcast_frame_t *req, char *payload);
+int lcast_cmd_channel_send(int sock, lcast_frame_t *req, char *payload);
+int lcast_cmd_channel_setop(int sock, lcast_frame_t *req, char *payload);
+int lcast_cmd_channel_unbind(int sock, lcast_frame_t *req, char *payload);
+
+/* socket commands */
+int lcast_cmd_socket_close(int sock, lcast_frame_t *req, char *payload);
+int lcast_cmd_socket_ignore(int sock, lcast_frame_t *req, char *payload);
+int lcast_cmd_socket_listen(int sock, lcast_frame_t *req, char *payload);
+int lcast_cmd_socket_new(int sock, lcast_frame_t *req, char *payload);
+int lcast_cmd_socket_setopt(int sock, lcast_frame_t *req, char *payload);
 
 /* process client command */
-int lcast_do_cmd(int sock, ws_frame_t *f);
+int lcast_cmd_handler(int sock, ws_frame_t *f);
 
 /* deal with incoming client data frames */
 int lcast_handle_client_data(int sock, ws_frame_t *f);

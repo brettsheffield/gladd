@@ -474,6 +474,7 @@ void lcast_init()
 	logmsg(LVL_TRACE, "%s", __func__);
 	if (lctx == NULL)
 		lctx = lc_ctx_new();
+	assert(lctx != NULL);
 	logmsg(LVL_DEBUG, "LIBRECAST CONTEXT id=%u", lc_ctx_get_id(lctx));
 }
 

@@ -28,6 +28,7 @@
 
 #include <arpa/inet.h>
 #include <assert.h>
+#include <pthread.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -47,6 +48,7 @@ typedef struct lcast_chan_t {
 } lcast_chan_t;
 
 int websock = 0;
+pthread_t keepalive_thread = 0;
 lc_ctx_t *lctx = NULL;
 lcast_sock_t *lsock = NULL;
 lcast_chan_t *lchan = NULL;
@@ -469,6 +471,19 @@ int lcast_handle_client_data(int sock, ws_frame_t *f)
 	return 0;
 }
 
+void * lcast_keepalive(void *arg)
+{
+	unsigned int seconds = *((unsigned int *) arg);
+
+	while(1) {
+		sleep(seconds);
+		logmsg(LVL_DEBUG, "keepalive ping (%us)", seconds);
+		ws_send(websock, WS_OPCODE_PING, NULL, 0);
+	}
+
+	return NULL;
+}
+
 void lcast_init()
 {
 	logmsg(LVL_TRACE, "%s", __func__);
@@ -476,6 +491,15 @@ void lcast_init()
 		lctx = lc_ctx_new();
 	assert(lctx != NULL);
 	logmsg(LVL_DEBUG, "LIBRECAST CONTEXT id=%u", lc_ctx_get_id(lctx));
+
+	/* start PING thread */
+	unsigned int s = LCAST_KEEPALIVE_INTERVAL;
+	if (keepalive_thread == 0) {
+		pthread_attr_t attr = {};
+		pthread_attr_init(&attr);
+		pthread_create(&keepalive_thread, &attr, lcast_keepalive, &s);
+		pthread_attr_destroy(&attr);
+	}
 }
 
 void lcast_recv(lc_message_t *msg)

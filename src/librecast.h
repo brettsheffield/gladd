@@ -77,6 +77,8 @@ typedef enum {
 #define LCAST_OP_CODE(code, cmd, fun) if (code == opcode) return cmd;
 #define LCAST_OP_FUN(code, cmd, fun) case code: logmsg(LVL_DEBUG, "%s", cmd); fun(sock, req, payload); break;
 
+#define LCAST_KEEPALIVE_INTERVAL 15
+
 /* return cmd name from opcode */
 char *lcast_cmd_name(lcast_opcode_t opcode);
 

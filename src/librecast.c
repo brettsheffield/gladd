@@ -256,8 +256,6 @@ int lcast_cmd_channel_bind(int sock, lcast_frame_t *req, char *payload)
 	if ((chan = lcast_channel_byid(req->id)) == NULL)
 		return error_log(LVL_ERROR, ERROR_LIBRECAST_CHANNEL_NOT_EXIST);
 
-	assert(chan);
-
 	if ((s = lcast_socket_byid(req->id2)) == NULL)
 		return error_log(LVL_ERROR, ERROR_LIBRECAST_INVALID_SOCKET_ID);
 
@@ -473,13 +471,15 @@ int lcast_handle_client_data(int sock, ws_frame_t *f)
 
 void * lcast_keepalive(void *arg)
 {
-	unsigned int seconds = *((unsigned int *) arg);
+	unsigned int seconds = LCAST_KEEPALIVE_INTERVAL;
 
 	while(1) {
 		sleep(seconds);
 		logmsg(LVL_DEBUG, "keepalive ping (%us)", seconds);
-		ws_send(websock, WS_OPCODE_PING, NULL, 0);
+		if (ws_send(websock, WS_OPCODE_PING, NULL, 0)  < sizeof(lcast_frame_t))
+			break;
 	}
+	logmsg(LOG_DEBUG, "thread %s exiting", __func__);
 
 	return NULL;
 }
@@ -493,11 +493,10 @@ void lcast_init()
 	logmsg(LVL_DEBUG, "LIBRECAST CONTEXT id=%u", lc_ctx_get_id(lctx));
 
 	/* start PING thread */
-	unsigned int s = LCAST_KEEPALIVE_INTERVAL;
 	if (keepalive_thread == 0) {
 		pthread_attr_t attr = {};
 		pthread_attr_init(&attr);
-		pthread_create(&keepalive_thread, &attr, lcast_keepalive, &s);
+		pthread_create(&keepalive_thread, &attr, lcast_keepalive, NULL);
 		pthread_attr_destroy(&attr);
 	}
 }
@@ -514,8 +513,6 @@ void lcast_recv(lc_message_t *msg)
 	lcast_sock_t *s;
 	if ((s = lcast_socket_byid(msg->sockid)) != NULL)
 		req->token = s->token;
-
-	lcast_cmd_debug(req, msg->msg);
 
 	lcast_frame_send(websock, req, msg->msg, req->len);
 	free(req);

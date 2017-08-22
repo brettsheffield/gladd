@@ -276,6 +276,7 @@ ssize_t ws_send(int sock, ws_opcode_t opcode, void *data, size_t len)
 {
 	uint16_t f = 0;
 	ssize_t sent = 0;
+	ssize_t bytes = 0;
 
 	f |= 1 << 15; /* FIN */
 	f |= opcode << 8;
@@ -283,8 +284,12 @@ ssize_t ws_send(int sock, ws_opcode_t opcode, void *data, size_t len)
 	f = htons(f);
 
 	setcork(sock, 1);
-	sent += snd(sock, &f, 2, 0);
-	sent += snd(sock, data, len, 0);
+	if ((bytes += snd(sock, &f, 2, 0)) < 0)
+		return -1;
+	sent += bytes;
+	if ((bytes += snd(sock, data, len, 0)) < 0)
+		return -1;
+	sent += bytes;
 	setcork(sock, 0);
 	logmsg(LVL_DEBUG, "%i bytes sent", sent);
 

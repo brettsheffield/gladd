@@ -234,12 +234,12 @@ int ws_read_request(int sock, ws_frame_t **ret)
 	logmsg(LVL_DEBUG, "(websocket) mask: %02x", ntohl(f->maskkey));
 
 	/* read payload */
-	data = calloc(1, f->len + 1);
+	data = calloc(1, f->len);
 	len = read(sock, data, f->len);
 	logmsg(LVL_DEBUG, "(websocket) %i bytes read (payload)", (int)len);
 
 	/* unmask payload */
-	f->data = calloc(1, f->len + 1);
+	f->data = calloc(1, f->len);
 	for (i = 0; i < f->len; i++) {
 		tmp = f->maskkey >> ((i % 4) * 8);
 		bcopy(&tmp, &mask, 1);

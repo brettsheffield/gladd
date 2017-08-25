@@ -30,6 +30,7 @@
 #include "websocket.h"
 
 #include <arpa/inet.h>
+#include <endian.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -275,18 +276,46 @@ int ws_select_protocol(char *header)
 ssize_t ws_send(int sock, ws_opcode_t opcode, void *data, size_t len)
 {
 	uint16_t f = 0;
+	uint16_t e16len = 0;
+	uint64_t e64len = 0;
 	ssize_t sent = 0;
 	ssize_t bytes = 0;
 
 	f |= 1 << 15; /* FIN */
 	f |= opcode << 8;
-	f |= (len & 0x7f);
+
+	if (len < 126)
+		f |= len;
+	else if (len < UINT16_MAX) {
+		logmsg(LVL_DEBUG, "extended (16) payload len=%i", (int) len);
+		f |= 126;
+		e16len = len;
+	}
+	else {
+		logmsg(LVL_DEBUG, "extended (64) payload len=%i", (int) len);
+		f |= 127;
+		e64len = len;
+	}
 	f = htons(f);
 
 	setcork(sock, 1);
 	if ((bytes += snd(sock, &f, 2, 0)) < 0)
 		return -1;
 	sent += bytes;
+
+	if (e16len) {
+		e16len = htons(e16len);
+		if ((bytes += snd(sock, &e16len, 2, 0)) < 0)
+			return -1;
+		sent += bytes;
+	}
+	else if (e64len) {
+		e64len = htobe64(e64len);
+		if ((bytes += snd(sock, &e64len, 8, 0)) < 0)
+			return -1;
+		sent += bytes;
+	}
+
 	if ((bytes += snd(sock, data, len, 0)) < 0)
 		return -1;
 	sent += bytes;

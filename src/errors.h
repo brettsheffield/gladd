@@ -29,22 +29,24 @@
 	X(0, ERROR_SUCCESS,                       "Success")                   \
 	X(1, ERROR_FAILURE,                       "Failure")                   \
 	X(2, ERROR_NOT_IMPLEMENTED,               "Not implemented")           \
-	X(3, ERROR_WEBSOCKET_RSVBITSET,           "(websocket) Reserved bit set")          \
-	X(4, ERROR_WEBSOCKET_BAD_OPCODE,          "(websocket) Bad opcode")                \
-	X(5, ERROR_WEBSOCKET_UNMASKED_DATA,       "(websocket) Unmasked client data")      \
-	X(6, ERROR_WEBSOCKET_CLOSE_CONNECTION,    "(websocket) Connection close requested") \
-	X(7, ERROR_WEBSOCKET_UNEXPECTED_CONTINUE, "(websocket) Unexpected continuation frame") \
-	X(8, ERROR_WEBSOCKET_UNEXPECTED_PONG,     "(websocket) Unexpected pong frame") \
-	X(9, ERROR_LIBRECAST_CONTEXT_NULL,        "(librecast) Operation on null context") \
-	X(10, ERROR_LIBRECAST_CHANNEL_NOT_EXIST,  "(librecast) No such channel") \
-	X(11, ERROR_LIBRECAST_CHANNEL_NOT_SELECTED, "(librecast) No channel selected") \
-	X(12, ERROR_LIBRECAST_CHANNEL_NOT_CREATED, "(librecast) Unable to create channel") \
-	X(13, ERROR_LIBRECAST_CHANNEL_NOT_JOINED, "(librecast) Unable to join channel") \
-	X(14, ERROR_LIBRECAST_LISTEN_FAIL,        "(librecast) Listen failed on socket") \
-	X(15, ERROR_LIBRECAST_NO_SOCKET,          "(librecast) No socket") \
-	X(16, ERROR_LIBRECAST_OPCODE_INVALID,     "(librecast) Invalid opcode") \
-	X(17, ERROR_LIBRECAST_SOCKET_NOT_CREATED, "(librecast) Unable to create socket") \
-	X(18, ERROR_LIBRECAST_INVALID_SOCKET_ID,  "(librecast) Invalid socket id")
+	X(3, ERROR_MALLOC,                        "Unable to allocate memory") \
+	X(4, ERROR_WEBSOCKET_RSVBITSET,           "(websocket) Reserved bit set")          \
+	X(5, ERROR_WEBSOCKET_BAD_OPCODE,          "(websocket) Bad opcode")                \
+	X(6, ERROR_WEBSOCKET_UNMASKED_DATA,       "(websocket) Unmasked client data")      \
+	X(7, ERROR_WEBSOCKET_CLOSE_CONNECTION,    "(websocket) Connection close requested") \
+	X(8, ERROR_WEBSOCKET_FRAGMENTED_CONTROL,  "(websocket) Fragmented control frame") \
+	X(9, ERROR_WEBSOCKET_UNEXPECTED_CONTINUE, "(websocket) Unexpected continuation frame") \
+	X(10, ERROR_WEBSOCKET_UNEXPECTED_PONG,     "(websocket) Unexpected pong frame") \
+	X(11, ERROR_LIBRECAST_CONTEXT_NULL,        "(librecast) Operation on null context") \
+	X(12, ERROR_LIBRECAST_CHANNEL_NOT_EXIST,  "(librecast) No such channel") \
+	X(13, ERROR_LIBRECAST_CHANNEL_NOT_SELECTED, "(librecast) No channel selected") \
+	X(14, ERROR_LIBRECAST_CHANNEL_NOT_CREATED, "(librecast) Unable to create channel") \
+	X(15, ERROR_LIBRECAST_CHANNEL_NOT_JOINED, "(librecast) Unable to join channel") \
+	X(16, ERROR_LIBRECAST_LISTEN_FAIL,        "(librecast) Listen failed on socket") \
+	X(17, ERROR_LIBRECAST_NO_SOCKET,          "(librecast) No socket") \
+	X(18, ERROR_LIBRECAST_OPCODE_INVALID,     "(librecast) Invalid opcode") \
+	X(19, ERROR_LIBRECAST_SOCKET_NOT_CREATED, "(librecast) Unable to create socket") \
+	X(20, ERROR_LIBRECAST_INVALID_SOCKET_ID,  "(librecast) Invalid socket id")
 #undef X
 
 #define ERROR_MSG(code, name, msg) case code: return msg;

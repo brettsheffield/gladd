@@ -156,16 +156,13 @@ int ws_read_request(int sock, ws_frame_t **ret)
 	f->mask = (fh->f2 & 0x80) >> 7;
 	f->len = fh->f2 & 0x7f;
 
-	/* TODO: handle fragmentation */
-	/* TODO: handle control frames */
-	/* TODO: connection states */
-	/* TODO: closing connection & closure codes */
-
 	if (f->fin)
 		logmsg(LVL_DEBUG, "(websocket) FIN");
-	else if (f->opcode > 0x2) {
+	else if (f->opcode > 0x2)
 		return error_log(LVL_ERROR, ERROR_WEBSOCKET_FRAGMENTED_CONTROL);
-	}
+	else
+		logmsg(LVL_DEBUG, "(websocket) fragmented frame received");
+
 	if (f->rsv1) {
 		logmsg(LVL_DEBUG, "(websocket) RSV1");
 		return ERROR_WEBSOCKET_RSVBITSET;

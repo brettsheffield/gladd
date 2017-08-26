@@ -419,21 +419,44 @@ int lcast_cmd_handler(int sock, ws_frame_t *f)
 {
 	logmsg(LVL_TRACE, "%s", __func__);
 
+	static char *stash = NULL;
 	char *payload = NULL;
+	static uint64_t len = 0;
 	char *data = (char *)(f->data) + sizeof(lcast_frame_t);
 	lcast_frame_t *req = NULL;
 
 	lcast_frame_decode(f, &req);
-	payload = calloc(1, req->len + 1);
-	bcopy(data, payload, req->len);
-	lcast_cmd_debug(req, payload);
 
-	switch (req->opcode) {
-		LCAST_OPCODES(LCAST_OP_FUN)
-	default:
-		error_log(LVL_ERROR, ERROR_LIBRECAST_OPCODE_INVALID);
+	if (f->opcode <= 0x2) {
+		/* data frame */
+		if (f->opcode != WS_OPCODE_CONTINUE) {
+			/* first or only frame in set */
+			len = 0;
+			free(stash);
+			stash = NULL;
+		}
+
+		stash = realloc(stash, req->len + len);
+		assert(stash);
+
+		memcpy(stash + len, data, req->len);
+		lcast_cmd_debug(req, stash);
+		len += req->len;
+		payload = stash;
 	}
 
+	/* NB: control frames can arrive between fragmented data frames */
+
+	if (f->fin) {
+		/* FIN bit set. This is either the last or only frame in the set. */
+		switch (req->opcode) {
+			LCAST_OPCODES(LCAST_OP_FUN)
+		default:
+			error_log(LVL_ERROR, ERROR_LIBRECAST_OPCODE_INVALID);
+		}
+		free(stash);
+		stash = NULL;
+	}
 	free(req);
 
 	return 0;
@@ -454,7 +477,7 @@ int lcast_handle_client_data(int sock, ws_frame_t *f)
         switch (f->opcode) {
         case 0x0:
                 logmsg(LVL_DEBUG, "(librecast) DATA (continuation frame)");
-		return error_log(LVL_ERROR, ERROR_WEBSOCKET_UNEXPECTED_CONTINUE);
+                return lcast_cmd_handler(sock, f);
         case 0x1:
                 logmsg(LVL_DEBUG, "(librecast) DATA (text)");
 		return error_log(LVL_ERROR, ERROR_NOT_IMPLEMENTED);

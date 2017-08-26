@@ -400,12 +400,14 @@ void lcast_cmd_debug(lcast_frame_t *req, char *payload)
 	logmsg(LVL_DEBUG, "(librecast) %s: id='%u'", command, req->id);
 	logmsg(LVL_DEBUG, "(librecast) %s: id2='%u'", command, req->id2);
 	logmsg(LVL_DEBUG, "(librecast) %s: token='%u'", command, req->token);
+#ifdef LCAST_DEBUG_LOG_PAYLOAD
 	if (payload) {
 		char *msg = calloc(1, req->len + 1);
 		memcpy(msg, payload, req->len);
 		logmsg(LVL_DEBUG, "(librecast) %s: '%s'", command, msg);
 		free(msg);
 	}
+#endif
 	logmsg(LVL_FULLTRACE, "%s exiting", __func__);
 }
 

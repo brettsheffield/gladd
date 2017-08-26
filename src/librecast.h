@@ -78,6 +78,7 @@ typedef enum {
 #define LCAST_OP_FUN(code, cmd, fun) case code: logmsg(LVL_DEBUG, "%s", cmd); fun(sock, req, payload); break;
 
 #define LCAST_KEEPALIVE_INTERVAL 15
+//#define LCAST_DEBUG_LOG_PAYLOAD 1
 
 /* return cmd name from opcode */
 char *lcast_cmd_name(lcast_opcode_t opcode);

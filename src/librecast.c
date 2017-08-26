@@ -162,7 +162,7 @@ lcast_chan_t *lcast_channel_new(char *name)
 	logmsg(LVL_DEBUG, "(librecast) CREATE channel '%s'", name);
 	chan = calloc(1, sizeof(struct lcast_chan_t));
 	chan->chan = lc_channel_new(lctx, name);
-	chan->name = strdup(name);
+	chan->name = name;
 	chan->id = lc_channel_get_id(chan->chan);
 
 	if (p)
@@ -281,8 +281,12 @@ int lcast_cmd_channel_new(int sock, lcast_frame_t *req, char *payload)
 {
 	logmsg(LVL_TRACE, "%s", __func__);
 	lcast_chan_t *chan;
+	char *channel;
 
-	if ((chan = lcast_channel_new(payload)) == NULL)
+	channel = calloc(1, req->len + 1);
+	memcpy(channel, payload, req->len);
+
+	if ((chan = lcast_channel_new(channel)) == NULL)
 		return error_log(LVL_ERROR, ERROR_LIBRECAST_CHANNEL_NOT_CREATED);
 
 	req->id = chan->id;

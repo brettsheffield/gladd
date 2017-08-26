@@ -160,7 +160,6 @@ int ws_read_request(int sock, ws_frame_t **ret)
 	/* TODO: handle control frames */
 	/* TODO: connection states */
 	/* TODO: closing connection & closure codes */
-	/* TODO: write to socket */
 
 	if (f->fin)
 		logmsg(LVL_DEBUG, "(websocket) FIN");

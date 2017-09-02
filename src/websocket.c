@@ -297,24 +297,24 @@ ssize_t ws_send(int sock, ws_opcode_t opcode, void *data, size_t len)
 	f = htons(f);
 
 	setcork(sock, 1);
-	if ((bytes += snd(sock, &f, 2, 0)) < 0)
+	if ((bytes = snd(sock, &f, 2, 0)) < 0)
 		return -1;
 	sent += bytes;
 
 	if (e16len) {
 		e16len = htons(e16len);
-		if ((bytes += snd(sock, &e16len, 2, 0)) < 0)
+		if ((bytes = snd(sock, &e16len, 2, 0)) < 0)
 			return -1;
 		sent += bytes;
 	}
 	else if (e64len) {
 		e64len = htobe64(e64len);
-		if ((bytes += snd(sock, &e64len, 8, 0)) < 0)
+		if ((bytes = snd(sock, &e64len, 8, 0)) < 0)
 			return -1;
 		sent += bytes;
 	}
 
-	if ((bytes += snd(sock, data, len, 0)) < 0)
+	if ((bytes = snd(sock, data, len, 0)) < 0)
 		return -1;
 	sent += bytes;
 	setcork(sock, 0);

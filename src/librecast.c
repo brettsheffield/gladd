@@ -504,11 +504,12 @@ int lcast_handle_client_data(int sock, ws_frame_t *f)
 void * lcast_keepalive(void *arg)
 {
 	unsigned int seconds = LCAST_KEEPALIVE_INTERVAL;
+	size_t bytes;
 
 	while(1) {
 		sleep(seconds);
 		logmsg(LVL_DEBUG, "keepalive ping (%us)", seconds);
-		if (ws_send(websock, WS_OPCODE_PING, NULL, 0)  < sizeof(lcast_frame_t))
+		if ((bytes = ws_send(websock, WS_OPCODE_PING, NULL, 0))  < 2)
 			break;
 	}
 	logmsg(LOG_DEBUG, "thread %s exiting", __func__);

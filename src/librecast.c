@@ -312,10 +312,13 @@ int lcast_cmd_channel_send(int sock, lcast_frame_t *req, char *payload)
 {
 	logmsg(LVL_TRACE, "%s", __func__);
 	lcast_chan_t *chan;
+	lc_message_t msg;
 
 	if ((chan = lcast_channel_byid(req->id)) == NULL)
 		return error_log(LVL_ERROR, ERROR_LIBRECAST_CHANNEL_NOT_EXIST);
-	lc_msg_send(chan->chan, (char *)payload, req->len);
+
+	lc_msg_init_data(&msg, payload, req->len, NULL, NULL);
+	lc_msg_send(chan->chan, &msg);
 
 	return 0;
 }
@@ -543,7 +546,7 @@ void lcast_recv(lc_message_t *msg)
 	if ((s = lcast_socket_byid(msg->sockid)) != NULL)
 		req->token = s->token;
 
-	lcast_frame_send(websock, req, msg->msg, req->len);
+	lcast_frame_send(websock, req, msg->data, req->len);
 	free(req);
 }
 

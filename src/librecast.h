@@ -36,46 +36,32 @@ typedef struct lcast_frame_t {
 	uint32_t token;
 } __attribute__((__packed__)) lcast_frame_t;
 
-typedef enum {
-	LCAST_OP_NOOP                   = 0x01,
-	LCAST_OP_SETOPT                 = 0x02,
-	LCAST_OP_SOCKET_NEW             = 0x03,
-	LCAST_OP_SOCKET_SETOPT          = 0x04,
-	LCAST_OP_SOCKET_LISTEN          = 0x05,
-	LCAST_OP_SOCKET_IGNORE          = 0x06,
-	LCAST_OP_SOCKET_CLOSE           = 0x07,
-	LCAST_OP_SOCKET_MSG             = 0x08,
-	LCAST_OP_CHANNEL_NEW            = 0x09,
-	LCAST_OP_CHANNEL_SETOPT         = 0x0a,
-	LCAST_OP_CHANNEL_BIND           = 0x0b,
-	LCAST_OP_CHANNEL_UNBIND         = 0x0c,
-	LCAST_OP_CHANNEL_JOIN           = 0x0d,
-	LCAST_OP_CHANNEL_PART           = 0x0e,
-	LCAST_OP_CHANNEL_SEND           = 0x0f
-} lcast_opcode_t;
-
 #define LCAST_OPCODES(X) \
-	X(LCAST_OP_NOOP,           "NOOP",           lcast_cmd_noop) \
-	X(LCAST_OP_SETOPT,         "SETOPT",         lcast_cmd_noop) \
-	X(LCAST_OP_SOCKET_NEW,     "SOCKET_NEW",     lcast_cmd_socket_new) \
-	X(LCAST_OP_SOCKET_SETOPT,  "SOCKET_SETOPT",  lcast_cmd_socket_setopt) \
-	X(LCAST_OP_SOCKET_LISTEN,  "SOCKET_LISTEN",  lcast_cmd_socket_listen) \
-	X(LCAST_OP_SOCKET_IGNORE,  "SOCKET_IGNORE",  lcast_cmd_socket_ignore) \
-	X(LCAST_OP_SOCKET_CLOSE,   "SOCKET_CLOSE",   lcast_cmd_socket_close) \
-	X(LCAST_OP_SOCKET_MSG,     "SOCKET_MSG",     lcast_cmd_noop) \
-	X(LCAST_OP_CHANNEL_NEW,    "CHANNEL_NEW",    lcast_cmd_channel_new) \
-	X(LCAST_OP_CHANNEL_SETOPT, "CHANNEL_SETOPT", lcast_cmd_channel_setop) \
-	X(LCAST_OP_CHANNEL_BIND,   "CHANNEL_BIND",   lcast_cmd_channel_bind) \
-	X(LCAST_OP_CHANNEL_UNBIND, "CHANNEL_UNBIND", lcast_cmd_channel_unbind) \
-	X(LCAST_OP_CHANNEL_JOIN,   "CHANNEL_JOIN",   lcast_cmd_channel_join) \
-	X(LCAST_OP_CHANNEL_PART,   "CHANNEL_PART",   lcast_cmd_channel_part) \
-	X(LCAST_OP_CHANNEL_SEND,   "CHANNEL_SEND",   lcast_cmd_channel_send)
+	X(0x01, LCAST_OP_NOOP,           "NOOP",           lcast_cmd_noop) \
+	X(0x02, LCAST_OP_SETOPT,         "SETOPT",         lcast_cmd_noop) \
+	X(0x03, LCAST_OP_SOCKET_NEW,     "SOCKET_NEW",     lcast_cmd_socket_new) \
+	X(0x04, LCAST_OP_SOCKET_SETOPT,  "SOCKET_SETOPT",  lcast_cmd_socket_setopt) \
+	X(0x05, LCAST_OP_SOCKET_LISTEN,  "SOCKET_LISTEN",  lcast_cmd_socket_listen) \
+	X(0x06, LCAST_OP_SOCKET_IGNORE,  "SOCKET_IGNORE",  lcast_cmd_socket_ignore) \
+	X(0x07, LCAST_OP_SOCKET_CLOSE,   "SOCKET_CLOSE",   lcast_cmd_socket_close) \
+	X(0x08, LCAST_OP_SOCKET_MSG,     "SOCKET_MSG",     lcast_cmd_noop) \
+	X(0x09, LCAST_OP_CHANNEL_NEW,    "CHANNEL_NEW",    lcast_cmd_channel_new) \
+	X(0x0a, LCAST_OP_CHANNEL_SETOPT, "CHANNEL_SETOPT", lcast_cmd_channel_setop) \
+	X(0x0b, LCAST_OP_CHANNEL_BIND,   "CHANNEL_BIND",   lcast_cmd_channel_bind) \
+	X(0x0c, LCAST_OP_CHANNEL_UNBIND, "CHANNEL_UNBIND", lcast_cmd_channel_unbind) \
+	X(0x0d, LCAST_OP_CHANNEL_JOIN,   "CHANNEL_JOIN",   lcast_cmd_channel_join) \
+	X(0x0e, LCAST_OP_CHANNEL_PART,   "CHANNEL_PART",   lcast_cmd_channel_part) \
+	X(0x0f, LCAST_OP_CHANNEL_SEND,   "CHANNEL_SEND",   lcast_cmd_channel_send)
 #undef X
 
-#define LCAST_TEXT_CMD(code, cmd, fun) if (strncmp(f->data, cmd, strlen(cmd))==0) return fun(sock, f, f->data + strlen(cmd));
+#define LCAST_TEXT_CMD(code, name, cmd, fun) if (strncmp(f->data, cmd, strlen(cmd))==0) return fun(sock, f, f->data + strlen(cmd));
+#define LCAST_OP_CODE(code, name, cmd, fun) if (name == opcode) return cmd;
+#define LCAST_OP_FUN(code, name, cmd, fun) case code: logmsg(LVL_DEBUG, "%s", cmd); fun(sock, req, payload); break;
+#define LCAST_OPCODES_ENUM(code, name, text, fun) name = code,
 
-#define LCAST_OP_CODE(code, cmd, fun) if (code == opcode) return cmd;
-#define LCAST_OP_FUN(code, cmd, fun) case code: logmsg(LVL_DEBUG, "%s", cmd); fun(sock, req, payload); break;
+typedef enum {
+	LCAST_OPCODES(LCAST_OPCODES_ENUM)
+} lcast_opcode_t;
 
 #define LCAST_KEEPALIVE_INTERVAL 15
 //#define LCAST_DEBUG_LOG_PAYLOAD 1

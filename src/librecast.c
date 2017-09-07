@@ -317,7 +317,8 @@ int lcast_cmd_channel_send(int sock, lcast_frame_t *req, char *payload)
 	if ((chan = lcast_channel_byid(req->id)) == NULL)
 		return error_log(LVL_ERROR, ERROR_LIBRECAST_CHANNEL_NOT_EXIST);
 
-	lc_msg_init_data(&msg, payload, req->len, NULL, NULL);
+	lc_msg_init_size(&msg, req->len);
+	memcpy(lc_msg_data(&msg), payload, req->len);
 	lc_msg_send(chan->chan, &msg);
 
 	return 0;

@@ -345,8 +345,20 @@ int lcast_cmd_channel_setop(int sock, lcast_frame_t *req, char *payload)
 int lcast_cmd_channel_getval(int sock, lcast_frame_t *req, char *payload)
 {
 	logmsg(LVL_TRACE, "%s", __func__);
+	lcast_chan_t *chan;
+	char *val;
+	size_t vlen;
+	lc_channel_t *lchan;
 
-	/* TODO */
+	if ((chan = lcast_channel_byid(req->id)) == NULL)
+		return error_log(LVL_ERROR, ERROR_LIBRECAST_CHANNEL_NOT_EXIST);
+	lchan = chan->chan;
+
+	/* TODO: fetch this from network */
+	lc_db_get(lc_channel_ctx(lchan), lc_channel_uri(lchan), payload, req->len, &val, &vlen);
+
+	/* send websocket reply */
+	lcast_frame_send(sock, req, val, vlen);
 
 	return 0;
 }

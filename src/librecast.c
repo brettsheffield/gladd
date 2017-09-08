@@ -324,6 +324,15 @@ int lcast_cmd_channel_send(int sock, lcast_frame_t *req, char *payload)
 	return 0;
 }
 
+int lcast_cmd_channel_getop(int sock, lcast_frame_t *req, char *payload)
+{
+	logmsg(LVL_TRACE, "%s", __func__);
+
+	/* TODO */
+
+	return 0;
+}
+
 int lcast_cmd_channel_setop(int sock, lcast_frame_t *req, char *payload)
 {
 	logmsg(LVL_TRACE, "%s", __func__);
@@ -332,6 +341,25 @@ int lcast_cmd_channel_setop(int sock, lcast_frame_t *req, char *payload)
 
 	return 0;
 }
+
+int lcast_cmd_channel_getval(int sock, lcast_frame_t *req, char *payload)
+{
+	logmsg(LVL_TRACE, "%s", __func__);
+
+	/* TODO */
+
+	return 0;
+}
+
+int lcast_cmd_channel_setval(int sock, lcast_frame_t *req, char *payload)
+{
+	logmsg(LVL_TRACE, "%s", __func__);
+
+	/* TODO */
+
+	return 0;
+}
+
 
 int lcast_cmd_channel_unbind(int sock, lcast_frame_t *req, char *payload)
 {
@@ -385,6 +413,15 @@ int lcast_cmd_socket_new(int sock, lcast_frame_t *req, char *payload)
 
 	req->id = s->id;
 	lcast_frame_send(sock, req, NULL, 0);
+
+	return 0;
+}
+
+int lcast_cmd_socket_getopt(int sock, lcast_frame_t *req, char *payload)
+{
+	logmsg(LVL_TRACE, "%s", __func__);
+
+	/* TODO */
 
 	return 0;
 }

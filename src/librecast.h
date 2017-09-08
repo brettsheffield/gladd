@@ -40,18 +40,22 @@ typedef struct lcast_frame_t {
 	X(0x01, LCAST_OP_NOOP,           "NOOP",           lcast_cmd_noop) \
 	X(0x02, LCAST_OP_SETOPT,         "SETOPT",         lcast_cmd_noop) \
 	X(0x03, LCAST_OP_SOCKET_NEW,     "SOCKET_NEW",     lcast_cmd_socket_new) \
-	X(0x04, LCAST_OP_SOCKET_SETOPT,  "SOCKET_SETOPT",  lcast_cmd_socket_setopt) \
-	X(0x05, LCAST_OP_SOCKET_LISTEN,  "SOCKET_LISTEN",  lcast_cmd_socket_listen) \
-	X(0x06, LCAST_OP_SOCKET_IGNORE,  "SOCKET_IGNORE",  lcast_cmd_socket_ignore) \
-	X(0x07, LCAST_OP_SOCKET_CLOSE,   "SOCKET_CLOSE",   lcast_cmd_socket_close) \
-	X(0x08, LCAST_OP_SOCKET_MSG,     "SOCKET_MSG",     lcast_cmd_noop) \
-	X(0x09, LCAST_OP_CHANNEL_NEW,    "CHANNEL_NEW",    lcast_cmd_channel_new) \
-	X(0x0a, LCAST_OP_CHANNEL_SETOPT, "CHANNEL_SETOPT", lcast_cmd_channel_setop) \
-	X(0x0b, LCAST_OP_CHANNEL_BIND,   "CHANNEL_BIND",   lcast_cmd_channel_bind) \
-	X(0x0c, LCAST_OP_CHANNEL_UNBIND, "CHANNEL_UNBIND", lcast_cmd_channel_unbind) \
-	X(0x0d, LCAST_OP_CHANNEL_JOIN,   "CHANNEL_JOIN",   lcast_cmd_channel_join) \
-	X(0x0e, LCAST_OP_CHANNEL_PART,   "CHANNEL_PART",   lcast_cmd_channel_part) \
-	X(0x0f, LCAST_OP_CHANNEL_SEND,   "CHANNEL_SEND",   lcast_cmd_channel_send)
+	X(0x04, LCAST_OP_SOCKET_GETOPT,  "SOCKET_GETOPT",  lcast_cmd_socket_getopt) \
+	X(0x05, LCAST_OP_SOCKET_SETOPT,  "SOCKET_SETOPT",  lcast_cmd_socket_setopt) \
+	X(0x06, LCAST_OP_SOCKET_LISTEN,  "SOCKET_LISTEN",  lcast_cmd_socket_listen) \
+	X(0x07, LCAST_OP_SOCKET_IGNORE,  "SOCKET_IGNORE",  lcast_cmd_socket_ignore) \
+	X(0x08, LCAST_OP_SOCKET_CLOSE,   "SOCKET_CLOSE",   lcast_cmd_socket_close) \
+	X(0x09, LCAST_OP_SOCKET_MSG,     "SOCKET_MSG",     lcast_cmd_noop) \
+	X(0x0a, LCAST_OP_CHANNEL_NEW,    "CHANNEL_NEW",    lcast_cmd_channel_new) \
+	X(0x0b, LCAST_OP_CHANNEL_GETOPT, "CHANNEL_GETOPT", lcast_cmd_channel_getop) \
+	X(0x0c, LCAST_OP_CHANNEL_SETOPT, "CHANNEL_SETOPT", lcast_cmd_channel_setop) \
+	X(0x0d, LCAST_OP_CHANNEL_GETVAL, "CHANNEL_GETVAL", lcast_cmd_channel_getval) \
+	X(0x0e, LCAST_OP_CHANNEL_SETVAL, "CHANNEL_SETVAL", lcast_cmd_channel_setval) \
+	X(0x0f, LCAST_OP_CHANNEL_BIND,   "CHANNEL_BIND",   lcast_cmd_channel_bind) \
+	X(0x10, LCAST_OP_CHANNEL_UNBIND, "CHANNEL_UNBIND", lcast_cmd_channel_unbind) \
+	X(0x11, LCAST_OP_CHANNEL_JOIN,   "CHANNEL_JOIN",   lcast_cmd_channel_join) \
+	X(0x12, LCAST_OP_CHANNEL_PART,   "CHANNEL_PART",   lcast_cmd_channel_part) \
+	X(0x13, LCAST_OP_CHANNEL_SEND,   "CHANNEL_SEND",   lcast_cmd_channel_send)
 #undef X
 
 #define LCAST_TEXT_CMD(code, name, cmd, fun) if (strncmp(f->data, cmd, strlen(cmd))==0) return fun(sock, f, f->data + strlen(cmd));
@@ -79,7 +83,10 @@ int lcast_cmd_channel_join(int sock, lcast_frame_t *req, char *payload);
 int lcast_cmd_channel_new(int sock, lcast_frame_t *req, char *payload);
 int lcast_cmd_channel_part(int sock, lcast_frame_t *req, char *payload);
 int lcast_cmd_channel_send(int sock, lcast_frame_t *req, char *payload);
+int lcast_cmd_channel_getop(int sock, lcast_frame_t *req, char *payload);
 int lcast_cmd_channel_setop(int sock, lcast_frame_t *req, char *payload);
+int lcast_cmd_channel_getval(int sock, lcast_frame_t *req, char *payload);
+int lcast_cmd_channel_setval(int sock, lcast_frame_t *req, char *payload);
 int lcast_cmd_channel_unbind(int sock, lcast_frame_t *req, char *payload);
 
 /* socket commands */

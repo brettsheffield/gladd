@@ -597,18 +597,19 @@ void lcast_recv(lc_message_t *msg)
 	lcast_frame_t *req = calloc(1, sizeof(lcast_frame_t));
 	char *data;
 	size_t len;
+	size_t headlen = 0;
 
 	switch (msg->op) {
 	case LC_OP_RET:
 		req->opcode = LCAST_OP_CHANNEL_GETVAL;
-		data = msg->data + 16;
-		len = msg->len - 16;
+		headlen = sizeof(lc_seq_t) + sizeof(lc_rnd_t);
 		break;
 	default:
 		req->opcode = LCAST_OP_SOCKET_MSG;
-		data = msg->data;
 		len = msg->len;
 	}
+	len = msg->len - headlen;
+	data = msg->data + headlen;
 	req->len = len;
 	req->id = msg->sockid;
 

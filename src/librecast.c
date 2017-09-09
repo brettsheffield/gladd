@@ -346,19 +346,27 @@ int lcast_cmd_channel_getval(int sock, lcast_frame_t *req, char *payload)
 {
 	logmsg(LVL_TRACE, "%s", __func__);
 	lcast_chan_t *chan;
-	char *val;
-	size_t vlen;
 	lc_channel_t *lchan;
+	char *v;
+	size_t vlen;
 
 	if ((chan = lcast_channel_byid(req->id)) == NULL)
 		return error_log(LVL_ERROR, ERROR_LIBRECAST_CHANNEL_NOT_EXIST);
 	lchan = chan->chan;
 
-	/* TODO: fetch this from network */
-	lc_db_get(lc_channel_ctx(lchan), lc_channel_uri(lchan), payload, req->len, &val, &vlen);
+	/* fetch from local cache */
+	if (lc_db_get(lc_channel_ctx(lchan), lc_channel_uri(lchan), payload, req->len,
+				&v, &vlen) == 0)
+	{
+		lcast_frame_send(sock, req, v, vlen);
+		free(v);
+	}
 
-	/* send websocket reply */
-	lcast_frame_send(sock, req, val, vlen);
+	/* send request for latest value to network */
+	lc_val_t key, val;
+	key.data = payload;
+	key.size = req->len;
+	lc_channel_getval(lchan, &key, &val);
 
 	return 0;
 }
@@ -587,16 +595,28 @@ void lcast_recv(lc_message_t *msg)
 {
 	logmsg(LVL_TRACE, "%s", __func__);
 	lcast_frame_t *req = calloc(1, sizeof(lcast_frame_t));
+	char *data;
+	size_t len;
 
-	req->opcode = LCAST_OP_SOCKET_MSG;
-	req->len = msg->len;
+	switch (msg->op) {
+	case LC_OP_RET:
+		req->opcode = LCAST_OP_CHANNEL_GETVAL;
+		data = msg->data + 16;
+		len = msg->len - 16;
+		break;
+	default:
+		req->opcode = LCAST_OP_SOCKET_MSG;
+		data = msg->data;
+		len = msg->len;
+	}
+	req->len = len;
 	req->id = msg->sockid;
 
 	lcast_sock_t *s;
 	if ((s = lcast_socket_byid(msg->sockid)) != NULL)
 		req->token = s->token;
 
-	lcast_frame_send(websock, req, msg->data, req->len);
+	lcast_frame_send(websock, req, data, len);
 	free(req);
 }
 

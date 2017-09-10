@@ -374,9 +374,35 @@ int lcast_cmd_channel_getval(int sock, lcast_frame_t *req, char *payload)
 int lcast_cmd_channel_setval(int sock, lcast_frame_t *req, char *payload)
 {
 	logmsg(LVL_TRACE, "%s", __func__);
+	lcast_chan_t *chan;
+	lc_channel_t *lchan;
+	lc_val_t key, val;
+	size_t keylen_size = 4;
 
-	/* TODO */
+	if ((chan = lcast_channel_byid(req->id)) == NULL)
+		return error_log(LVL_ERROR, ERROR_LIBRECAST_CHANNEL_NOT_EXIST);
+	lchan = chan->chan;
 
+	/* extract key and value from payload */
+	/* [keylen][key][val] */
+	memcpy(&key.size, payload, keylen_size);
+	key.size = be32toh(key.size);
+	key.data = malloc(key.size);
+	memcpy((&key)->data, payload + keylen_size, key.size);
+	val.size = req->len - key.size - keylen_size;
+	val.data = malloc(val.size);
+	memcpy((&val)->data, payload + keylen_size + key.size, val.size);
+
+	/* save to local cache */
+	lc_db_set(lc_channel_ctx(lchan), lc_channel_uri(lchan), key.data, key.size, val.data, val.size);
+
+	/* send to network */
+	lc_channel_setval(lchan, &key, &val);
+
+	free(key.data);
+	free(val.data);
+
+	logmsg(LVL_FULLTRACE, "%s exiting", __func__);
 	return 0;
 }
 

@@ -622,28 +622,28 @@ void lcast_recv(lc_message_t *msg)
 	logmsg(LVL_TRACE, "%s", __func__);
 	lcast_frame_t *req = calloc(1, sizeof(lcast_frame_t));
 	char *data;
-	size_t len;
-	size_t headlen = 0;
+	size_t skip = 0;
 
 	switch (msg->op) {
 	case LC_OP_RET:
 		req->opcode = LCAST_OP_CHANNEL_GETVAL;
-		headlen = sizeof(lc_seq_t) + sizeof(lc_rnd_t);
+		skip = sizeof(lc_seq_t) + sizeof(lc_rnd_t);
+		break;
+	case LC_OP_SET:
+		req->opcode = LCAST_OP_CHANNEL_SETVAL;
 		break;
 	default:
 		req->opcode = LCAST_OP_SOCKET_MSG;
-		len = msg->len;
 	}
-	len = msg->len - headlen;
-	data = msg->data + headlen;
-	req->len = len;
+	req->len = msg->len - skip;
+	data = msg->data + skip;
 	req->id = msg->sockid;
 
 	lcast_sock_t *s;
 	if ((s = lcast_socket_byid(msg->sockid)) != NULL)
 		req->token = s->token;
 
-	lcast_frame_send(websock, req, data, len);
+	lcast_frame_send(websock, req, data, req->len);
 	free(req);
 }
 

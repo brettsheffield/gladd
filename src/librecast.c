@@ -350,6 +350,10 @@ int lcast_cmd_channel_getval(int sock, lcast_frame_t *req, char *payload)
 	char *v;
 	size_t vlen;
 
+	if (req == NULL)
+		return error_log(LVL_ERROR, ERROR_LIBRECAST_INVALID_PARAMS);
+	if (payload == NULL)
+		return error_log(LVL_ERROR, ERROR_LIBRECAST_INVALID_PARAMS);
 	if ((chan = lcast_channel_byid(req->id)) == NULL)
 		return error_log(LVL_ERROR, ERROR_LIBRECAST_CHANNEL_NOT_EXIST);
 	lchan = chan->chan;

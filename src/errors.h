@@ -46,7 +46,8 @@
 	X(17, ERROR_LIBRECAST_NO_SOCKET,          "(librecast) No socket") \
 	X(18, ERROR_LIBRECAST_OPCODE_INVALID,     "(librecast) Invalid opcode") \
 	X(19, ERROR_LIBRECAST_SOCKET_NOT_CREATED, "(librecast) Unable to create socket") \
-	X(20, ERROR_LIBRECAST_INVALID_SOCKET_ID,  "(librecast) Invalid socket id")
+	X(20, ERROR_LIBRECAST_INVALID_SOCKET_ID,  "(librecast) Invalid socket id") \
+	X(21, ERROR_LIBRECAST_INVALID_PARAMS,     "(librecast) Invalid parameters to function")
 #undef X
 
 #define ERROR_MSG(code, name, msg) case code: return msg;

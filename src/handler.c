@@ -1595,10 +1595,15 @@ ssize_t snd_blank_line(int sock)
 ssize_t snd_string(int sock, char *str, ...)
 {
 	ssize_t len = 0;
+	char *data;
 	va_list argp;
+
 	va_start(argp, str);
-	len = vdprintf(sock, str, argp);
+	vasprintf(&data, str, argp);
 	va_end(argp);
+	len = snd(sock, data, strlen(data), 0);
+	free(data);
+
 	return len;
 }
 

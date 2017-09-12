@@ -45,9 +45,11 @@ cd src
 make
 make install
 
-== Ubuntu 12.04/14/04 LTS ==
+== Ubuntu 12.04/14.04/16.04 LTS ==
 
 # install required runtime libraries
+apt-get install build-essential autoconf pkg-config
+apt-get install libssl-dev
 apt-get install libxslt1.1
 apt-get install libpq5
 apt-get install libmysqlclient18

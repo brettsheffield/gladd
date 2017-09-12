@@ -383,8 +383,13 @@ int lcast_cmd_channel_setval(int sock, lcast_frame_t *req, char *payload)
 	lc_val_t key, val;
 	size_t keylen_size = 4;
 
+	if (req == NULL)
+		return error_log(LVL_ERROR, ERROR_LIBRECAST_INVALID_PARAMS);
 	if ((chan = lcast_channel_byid(req->id)) == NULL)
 		return error_log(LVL_ERROR, ERROR_LIBRECAST_CHANNEL_NOT_EXIST);
+	if (payload == NULL)
+		return error_log(LVL_ERROR, ERROR_LIBRECAST_INVALID_PARAMS);
+
 	lchan = chan->chan;
 
 	/* extract key and value from payload */

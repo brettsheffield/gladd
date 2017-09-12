@@ -4091,8 +4091,6 @@ then
 $as_echo "$as_me: disabling openldap support" >&6;}
 	openldap=-D_NLDAP
 
-	libopenldap=-lldap
-
 else
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for ldap_initialize in -lldap" >&5
 $as_echo_n "checking for ldap_initialize in -lldap... " >&6; }
@@ -4131,11 +4129,8 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_ldap_ldap_initialize" >&5
 $as_echo "$ac_cv_lib_ldap_ldap_initialize" >&6; }
 if test "x$ac_cv_lib_ldap_ldap_initialize" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBLDAP 1
-_ACEOF
+  libopenldap=-lldap
 
-  LIBS="-lldap $LIBS"
 
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: openldap not found - disabling" >&5

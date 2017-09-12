@@ -172,9 +172,9 @@ if test "$gladdb_ldap" == "0"
 then
 	AC_MSG_NOTICE([disabling openldap support])
 	AC_SUBST(openldap, -D_NLDAP)
-	AC_SUBST(libopenldap, -lldap)
 else
 	AC_CHECK_LIB([ldap], [ldap_initialize],
+		AC_SUBST(libopenldap, -lldap)
 	,
 		AC_MSG_WARN([openldap not found - disabling])
 		AC_SUBST(openldap, -D_NLDAP)

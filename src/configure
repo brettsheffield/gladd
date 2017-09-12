@@ -3979,7 +3979,7 @@ $as_echo "$as_me: OPENSSL enabled." >&6;}
 
 		ssl=openssl
 
-		libssl="-lssl -crypto"
+		libssl="`pkg-config --libs openssl`"
 
 
 else

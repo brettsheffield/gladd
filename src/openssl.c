@@ -3,7 +3,7 @@
  *
  * this file is part of GLADD
  *
- * Copyright (c) 2012-2016 Brett Sheffield <brett@gladserv.com>
+ * Copyright (c) 2012-2017 Brett Sheffield <brett@gladserv.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -177,20 +177,27 @@ size_t ssl_send(char *msg, size_t len)
         int ret;
         int nwrite = 0;
         do {
+	        syslog(LOG_DEBUG, "(openssl) pending %d bytes", SSL_pending(ssl));
+	        syslog(LOG_DEBUG, "(openssl) attempting to read %i bytes", len-nread);
                 ret = SSL_write(ssl, msg+nwrite, len-nwrite);
                 switch (SSL_get_error(ssl, ret)) {
                 case SSL_ERROR_NONE:
                         nwrite += ret;
+                        syslog(LOG_DEBUG, "(openssl) %i bytes read", ret);
                         break;
                 case SSL_ERROR_ZERO_RETURN:
+                        syslog(LOG_DEBUG, "(openssl) SSL_ERROR_ZERO_RETURN");
                         break;
                 case SSL_ERROR_WANT_WRITE:
+                        syslog(LOG_DEBUG, "(openssl) SSL_ERROR_WANT_WRITE");
                         break;
                 case SSL_ERROR_WANT_READ:
+                        syslog(LOG_DEBUG, "(openssl) SSL_ERROR_WANT_READ");
                         break;
                 default:
                         break;
                 }
+                break;
         } while(ret > 0);
         return nwrite;
 }

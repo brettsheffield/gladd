@@ -165,15 +165,15 @@ int ws_read_request(int sock, ws_frame_t **ret)
 
 	if (f->rsv1) {
 		logmsg(LVL_DEBUG, "(websocket) RSV1");
-		return ERROR_WEBSOCKET_RSVBITSET;
+		return error_log(LVL_ERROR, ERROR_WEBSOCKET_RSVBITSET);
 	}
 	if (f->rsv2) {
 		logmsg(LVL_DEBUG, "(websocket) RSV2");
-		return ERROR_WEBSOCKET_RSVBITSET;
+		return error_log(LVL_ERROR, ERROR_WEBSOCKET_RSVBITSET);
 	}
 	if (f->rsv3) {
 		logmsg(LVL_DEBUG, "(websocket) RSV3");
-		return ERROR_WEBSOCKET_RSVBITSET;
+		return error_log(LVL_ERROR, ERROR_WEBSOCKET_RSVBITSET);
 	}
 
         switch (f->opcode) {
@@ -199,8 +199,7 @@ int ws_read_request(int sock, ws_frame_t **ret)
         /* %xB-F are reserved for further control frames */
         default:
                 logmsg(LVL_DEBUG, "(websocket) unknown opcode %#x received", f->opcode);
-		return ERROR_WEBSOCKET_BAD_OPCODE;
-                break;
+		return error_log(LVL_ERROR, ERROR_WEBSOCKET_BAD_OPCODE);
         }
 
 	if (f->mask == 1) {
@@ -208,7 +207,7 @@ int ws_read_request(int sock, ws_frame_t **ret)
 	}
 	else {
 		logmsg(LVL_WARNING, "Rejecting unmasked client data");
-		return ERROR_WEBSOCKET_UNMASKED_DATA;
+		return error_log(LVL_ERROR, ERROR_WEBSOCKET_UNMASKED_DATA);
 	}
 
 	/* get payload length */

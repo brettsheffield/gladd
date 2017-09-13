@@ -144,7 +144,7 @@ int ws_read_request(int sock, ws_frame_t **ret)
 	/* read websocket header */
 	f = calloc(1, sizeof(struct ws_frame_t));
 	fh = calloc(1, sizeof(struct ws_frame_header_t));
-	len = read(sock, fh, 2);
+	len = rcv(sock, fh, 2, 0);
 	logmsg(LVL_DEBUG, "(websocket) %i bytes read (header)", (int)len);
 
 	/* check some bit flags */
@@ -213,26 +213,26 @@ int ws_read_request(int sock, ws_frame_t **ret)
 	/* get payload length */
 	if (f->len == 126) {
 		/* 16 bit extended payload length */
-		len = read(sock, &(f->len), 2);
+		len = rcv(sock, &(f->len), 2, 0);
 		logmsg(LVL_DEBUG, "(websocket) %li bytes read (length)", len);
 		f->len = ntohs(f->len);
 	}
 	else if (f->len == 127) {
 		/* 64 bit extra specially extended payload length of great wonderfulness */
-		len = read(sock, &(f->len), 8);
+		len = rcv(sock, &(f->len), 8, 0);
 		logmsg(LVL_DEBUG, "(websocket) %li bytes read (length)", len);
 		f->len = ntohll(f->len);
 	}
 	logmsg(LVL_DEBUG, "(websocket) length: %u", (unsigned int)f->len);
 
 	/* get payload mask */
-	len = read(sock, &(f->maskkey), 4);
+	len = rcv(sock, &(f->maskkey), 4, 0);
 	logmsg(LVL_DEBUG, "(websocket) %i bytes read (mask)", (int)len);
 	logmsg(LVL_DEBUG, "(websocket) mask: %02x", ntohl(f->maskkey));
 
 	/* read payload */
 	data = calloc(1, f->len);
-	len = read(sock, data, f->len);
+	len = rcv(sock, data, f->len, 0);
 	logmsg(LVL_DEBUG, "(websocket) %i bytes read (payload)", (int)len);
 
 	/* unmask payload */

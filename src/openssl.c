@@ -154,20 +154,27 @@ size_t ssl_recv(char *b, int len)
         int ret;
         int nread = 0;
         do {
+	        syslog(LOG_DEBUG, "(openssl) pending %d bytes", SSL_pending(ssl));
+	        syslog(LOG_DEBUG, "(openssl) attempting to read %d bytes", (int)len-nread);
                 ret = SSL_read(ssl, b+nread, len-nread);
                 switch (SSL_get_error(ssl, ret)) {
                 case SSL_ERROR_NONE:
                         nread += ret;
+                        syslog(LOG_DEBUG, "(openssl) %i bytes read", ret);
                         break;
                 case SSL_ERROR_ZERO_RETURN:
+                        syslog(LOG_DEBUG, "(openssl) SSL_ERROR_ZERO_RETURN");
                         break;
                 case SSL_ERROR_WANT_WRITE:
+                        syslog(LOG_DEBUG, "(openssl) SSL_ERROR_WANT_WRITE");
                         break;
                 case SSL_ERROR_WANT_READ:
                         break;
+                        syslog(LOG_DEBUG, "(openssl) SSL_ERROR_WANT_READ");
                 default:
                         break;
                 }
+                break;
         } while(ret > 0);
         return nread;
 }
@@ -177,13 +184,12 @@ size_t ssl_send(char *msg, size_t len)
         int ret;
         int nwrite = 0;
         do {
-	        syslog(LOG_DEBUG, "(openssl) pending %d bytes", SSL_pending(ssl));
-	        syslog(LOG_DEBUG, "(openssl) attempting to read %i bytes", len-nread);
+	        syslog(LOG_DEBUG, "(openssl) attempting to write %d bytes", (int)len-nwrite);
                 ret = SSL_write(ssl, msg+nwrite, len-nwrite);
                 switch (SSL_get_error(ssl, ret)) {
                 case SSL_ERROR_NONE:
                         nwrite += ret;
-                        syslog(LOG_DEBUG, "(openssl) %i bytes read", ret);
+                        syslog(LOG_DEBUG, "(openssl) %i bytes written", ret);
                         break;
                 case SSL_ERROR_ZERO_RETURN:
                         syslog(LOG_DEBUG, "(openssl) SSL_ERROR_ZERO_RETURN");
@@ -197,7 +203,6 @@ size_t ssl_send(char *msg, size_t len)
                 default:
                         break;
                 }
-                break;
         } while(ret > 0);
         return nwrite;
 }

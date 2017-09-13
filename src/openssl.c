@@ -203,6 +203,7 @@ size_t ssl_send(char *msg, size_t len)
                 default:
                         break;
                 }
+                break;
         } while(ret > 0);
         return nwrite;
 }

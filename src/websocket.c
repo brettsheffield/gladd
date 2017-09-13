@@ -158,7 +158,7 @@ int ws_read_request(int sock, ws_frame_t **ret)
 
 	if (f->fin)
 		logmsg(LVL_DEBUG, "(websocket) FIN");
-	else if (f->opcode > 0x2)
+	else if (f->opcode > 0x7)
 		return error_log(LVL_ERROR, ERROR_WEBSOCKET_FRAGMENTED_CONTROL);
 	else
 		logmsg(LVL_DEBUG, "(websocket) fragmented frame received");

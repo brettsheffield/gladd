@@ -253,7 +253,7 @@ char *http_get_header(http_request_t *r, char *key)
 {
         keyval_t *h = r->headers;
         while (h != NULL) {
-                if (strcmp(h->key, key) == 0)
+                if (strcasecmp(h->key, key) == 0)
                         return h->value;
                 h = h->next;
         }

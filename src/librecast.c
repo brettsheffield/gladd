@@ -273,6 +273,7 @@ int lcast_cmd_channel_join(int sock, lcast_frame_t *req, char *payload)
 	if ((chan = lcast_channel_byid(req->id)) == NULL)
 		return error_log(LVL_ERROR, ERROR_LIBRECAST_CHANNEL_NOT_EXIST);
 	lc_channel_join(chan->chan);
+	lcast_frame_send(sock, req, NULL, 0);
 
 	return 0;
 }

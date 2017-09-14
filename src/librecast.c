@@ -123,7 +123,7 @@ lcast_sock_t *lcast_socket_new()
 {
 	logmsg(LVL_TRACE, "%s", __func__);
 	lcast_sock_t *sock = NULL;
-	lcast_sock_t *p = lsock;
+	lcast_sock_t *p;
 
 	lcast_init();
 
@@ -132,8 +132,14 @@ lcast_sock_t *lcast_socket_new()
 	sock->sock = lc_socket_new(lctx);
 	sock->id = lc_socket_get_id(sock->sock);
 
-	if (p)
-		p->next = sock;
+	logmsg(LVL_DEBUG, "socket id %u created", sock->id);
+
+	for (p = lsock; p != NULL; p = p->next) {
+		if (p->next == NULL) {
+			p->next = sock;
+			break;
+		}
+	}
 
 	if (lsock == NULL)
 		lsock = sock;

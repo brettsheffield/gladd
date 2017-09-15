@@ -188,6 +188,7 @@ char *check_content_type(http_request_t *r, http_status_code_t *err, char *type)
         }
         if ((strcmp(mtype, "application/x-www-form-urlencoded") == 0)
         || (strlcmp(mtype, "text/xml") == 0)
+        || (strlcmp(mtype, "application/json") == 0)
         || (strlcmp(mtype, "text/ldif") == 0))
         {
                 return mtype;
@@ -635,9 +636,13 @@ int read_request_body(int sock, char *ctype, long lclen,
                 asprintf(&r->data->key, "text/ldif");
                 r->data->value = body;
         }
-        else if (strlcmp(ctype, "application/x-www-form-urlencoded") == 0) {
+        if (strlcmp(ctype, "application/x-www-form-urlencoded") == 0) {
                 bodyline(r, body); /* process keyvals */
         }
+	else {
+		r->data->key = strdup(ctype);
+		r->data->value = body;
+	}
         return 1;
 }
 

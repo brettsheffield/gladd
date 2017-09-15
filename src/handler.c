@@ -1183,10 +1183,17 @@ http_status_code_t response_xml_plugin(int sock, url_t *u)
         }
         close(pipes[0]); close(pipes[3]); /* close unused pipes in parent */
 
-        /* write to stdin of plugin */
-        fd = fdopen(pipes[1], "w");
-        fprintf(fd, "%s", request->data->value);
-        fclose(fd);
+	if (request->data == NULL)
+		syslog(LOG_DEBUG, "no request data");
+	else {
+		syslog(LOG_DEBUG, "%s", request->data->value);
+		if (request->data->value != NULL) {
+			/* write to stdin of plugin */
+			fd = fdopen(pipes[1], "w");
+			fprintf(fd, "%s", request->data->value);
+			fclose(fd);
+		}
+	}
 
         /* read from stdout of plugin */
         fd = fdopen(pipes[2], "r");

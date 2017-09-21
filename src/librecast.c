@@ -354,7 +354,7 @@ int lcast_cmd_channel_getval(int sock, lcast_frame_t *req, char *payload)
 	logmsg(LVL_TRACE, "%s", __func__);
 	lcast_chan_t *chan;
 	lc_channel_t *lchan;
-	char *v;
+	void *v;
 	size_t vlen;
 
 	if (req == NULL)

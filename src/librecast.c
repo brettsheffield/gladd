@@ -331,6 +331,44 @@ int lcast_cmd_channel_send(int sock, lcast_frame_t *req, char *payload)
 	return 0;
 }
 
+int lcast_cmd_channel_getmsg(int sock, lcast_frame_t *req, char *payload)
+{
+	logmsg(LVL_TRACE, "%s", __func__);
+
+	int rc, msgs;
+	lcast_chan_t *chan;
+	lc_query_t *q = NULL;
+	lc_messagelist_t *msglist = NULL, *msg;
+	lcast_frame_t *rep = NULL;
+
+	if (req == NULL)
+		return error_log(LVL_ERROR, ERROR_LIBRECAST_INVALID_PARAMS);
+	if ((chan = lcast_channel_byid(req->id)) == NULL)
+		return error_log(LVL_ERROR, ERROR_LIBRECAST_CHANNEL_NOT_EXIST);
+
+	if ((rc = lc_query_new(lc_channel_ctx(chan->chan), &q)) != 0)
+		return error_log(LVL_ERROR, rc);
+
+	lc_query_push(q, LC_QUERY_CHANNEL, chan->name);
+	msgs = lc_query_exec(q, &msglist);
+	for (msg = msglist; msg != NULL; msg = msg->next) {
+		rep = calloc(1, sizeof(lcast_frame_t));
+		rep->opcode = LCAST_OP_SOCKET_MSG;
+		rep->id = req->id;
+		rep->token = req->token;
+
+		/* replay the message */
+		lcast_frame_send(websock, rep, msg->data, strlen(msg->data));
+		free(rep);
+	}
+	logmsg(LVL_DEBUG, "found %i messages", msgs);
+
+	lc_msglist_free(msglist);
+	lc_query_free(q);
+
+	return 0;
+}
+
 int lcast_cmd_channel_getop(int sock, lcast_frame_t *req, char *payload)
 {
 	logmsg(LVL_TRACE, "%s", __func__);

@@ -34,6 +34,7 @@ typedef struct lcast_frame_t {
 	uint32_t id;
 	uint32_t id2;
 	uint32_t token;
+	uint64_t timestamp;
 } __attribute__((__packed__)) lcast_frame_t;
 
 #define LCAST_OPCODES(X) \

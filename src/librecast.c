@@ -28,6 +28,7 @@
 
 #include <arpa/inet.h>
 #include <assert.h>
+#include <inttypes.h>
 #include <pthread.h>
 #include <stdlib.h>
 #include <string.h>
@@ -236,6 +237,10 @@ int lcast_frame_send(int sock, lcast_frame_t *req, char *payload, uint32_t payle
 	msg->id2 = htonl(req->id2);
 	msg->token = htonl(req->token);
 
+	/* drop timestamp precision to seconds */
+	logmsg(LOG_DEBUG, "lcast timestamp: %"PRIu64"", req->timestamp);
+	msg->timestamp = htobe64(req->timestamp / 1000000000);
+
 	buf = calloc(1, len_send);
 	memcpy(buf, msg, len_head);
 	if (payload && paylen > 0) {
@@ -356,6 +361,7 @@ int lcast_cmd_channel_getmsg(int sock, lcast_frame_t *req, char *payload)
 		rep->opcode = LCAST_OP_SOCKET_MSG;
 		rep->id = req->id;
 		rep->token = req->token;
+		rep->timestamp = msg->timestamp;
 
 		/* replay the message */
 		lcast_frame_send(websock, rep, msg->data, strlen(msg->data));
@@ -692,6 +698,7 @@ void lcast_recv(lc_message_t *msg)
 	req->len = msg->len - skip;
 	data = msg->data + skip;
 	req->id = msg->sockid;
+	req->timestamp = msg->timestamp;
 
 	lcast_sock_t *s;
 	if ((s = lcast_socket_byid(msg->sockid)) != NULL)

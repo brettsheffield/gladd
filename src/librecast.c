@@ -356,6 +356,7 @@ int lcast_cmd_channel_getmsg(int sock, lcast_frame_t *req, char *payload)
 
 	lc_query_push(q, LC_QUERY_CHANNEL, chan->name);
 	msgs = lc_query_exec(q, &msglist);
+	logmsg(LVL_DEBUG, "%i messages found", msgs);
 	for (msg = msglist; msg != NULL; msg = msg->next) {
 		rep = calloc(1, sizeof(lcast_frame_t));
 		rep->opcode = LCAST_OP_SOCKET_MSG;

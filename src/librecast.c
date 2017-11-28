@@ -355,6 +355,13 @@ int lcast_cmd_channel_getmsg(int sock, lcast_frame_t *req, char *payload)
 		return error_log(LVL_ERROR, rc);
 
 	lc_query_push(q, LC_QUERY_CHANNEL, chan->name);
+
+	/* process payload into query filters */
+	if (req->len > 0) {
+		uint64_t timestamp = strtoumax(payload, NULL, 10);
+		lc_query_push(q, LC_QUERY_TIME | LC_QUERY_GT, &timestamp);
+	}
+
 	msgs = lc_query_exec(q, &msglist);
 	logmsg(LVL_DEBUG, "%i messages found", msgs);
 	for (msg = msglist; msg != NULL; msg = msg->next) {

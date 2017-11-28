@@ -35,17 +35,17 @@
 #include <unistd.h>
 
 typedef struct lcast_sock_t {
-        lc_socket_t *sock;
-        uint32_t id;
-        uint32_t token;
-        struct lcast_sock_t *next;
+	lc_socket_t *sock;
+	uint32_t id;
+	uint32_t token;
+	struct lcast_sock_t *next;
 } lcast_sock_t;
 
 typedef struct lcast_chan_t {
-        lc_channel_t *chan;
-        uint32_t id;
-        char *name;
-        struct lcast_chan_t *next;
+	lc_channel_t *chan;
+	uint32_t id;
+	char *name;
+	struct lcast_chan_t *next;
 } lcast_chan_t;
 
 int websock = 0;
@@ -619,8 +619,8 @@ int lcast_cmd_handler(int sock, ws_frame_t *f)
 char *lcast_cmd_name(lcast_opcode_t opcode)
 {
 	logmsg(LVL_TRACE, "%s", __func__);
-        LCAST_OPCODES(LCAST_OP_CODE)
-        return NULL;
+	LCAST_OPCODES(LCAST_OP_CODE)
+	return NULL;
 }
 
 int lcast_handle_client_data(int sock, ws_frame_t *f)
@@ -628,20 +628,20 @@ int lcast_handle_client_data(int sock, ws_frame_t *f)
 	logmsg(LVL_TRACE, "%s", __func__);
 	logmsg(LVL_DEBUG, "lc_handle_client_data() has opcode 0x%x", f->opcode);
 
-        switch (f->opcode) {
-        case 0x0:
-                logmsg(LVL_DEBUG, "(librecast) DATA (continuation frame)");
-                return lcast_cmd_handler(sock, f);
-        case 0x1:
-                logmsg(LVL_DEBUG, "(librecast) DATA (text)");
-		return error_log(LVL_ERROR, ERROR_NOT_IMPLEMENTED);
-        case 0x2:
-                logmsg(LVL_DEBUG, "(librecast) DATA (binary)");
+	switch (f->opcode) {
+	case 0x0:
+		logmsg(LVL_DEBUG, "(librecast) DATA (continuation frame)");
 		return lcast_cmd_handler(sock, f);
-        default:
-                logmsg(LVL_DEBUG, "opcode 0x%x not valid for data frame", f->opcode);
-                break;
-        }
+	case 0x1:
+		logmsg(LVL_DEBUG, "(librecast) DATA (text)");
+		return error_log(LVL_ERROR, ERROR_NOT_IMPLEMENTED);
+	case 0x2:
+		logmsg(LVL_DEBUG, "(librecast) DATA (binary)");
+		return lcast_cmd_handler(sock, f);
+	default:
+		logmsg(LVL_DEBUG, "opcode 0x%x not valid for data frame", f->opcode);
+		break;
+	}
 
 	return 0;
 }

@@ -340,11 +340,15 @@ int lcast_cmd_channel_getmsg(int sock, lcast_frame_t *req, char *payload)
 {
 	logmsg(LVL_TRACE, "%s", __func__);
 
+	char *tmp;
+	int i = 0;
+	int op = 0;
 	int rc, msgs;
 	lcast_chan_t *chan;
 	lc_query_t *q = NULL;
 	lc_messagelist_t *msglist = NULL, *msg;
 	lcast_frame_t *rep = NULL;
+	uint64_t timestamp;
 
 	if (req == NULL)
 		return error_log(LVL_ERROR, ERROR_LIBRECAST_INVALID_PARAMS);
@@ -354,13 +358,26 @@ int lcast_cmd_channel_getmsg(int sock, lcast_frame_t *req, char *payload)
 	if ((rc = lc_query_new(lc_channel_ctx(chan->chan), &q)) != 0)
 		return error_log(LVL_ERROR, rc);
 
+	/* only retrieve messages for this channel */
 	lc_query_push(q, LC_QUERY_CHANNEL, chan->name);
 
 	/* process payload into query filters */
-	if (req->len > 0) {
-		uint64_t timestamp = strtoumax(payload, NULL, 10);
-		lc_query_push(q, LC_QUERY_TIME | LC_QUERY_GT, &timestamp);
+	/* [queryop][data] */
+	while (i < req->len) {
+		memcpy(&op, payload, 1); i += 1;
+		logmsg(LVL_DEBUG, "query opcode: %i", op);
+		if ((op & LC_QUERY_TIME) == LC_QUERY_TIME) {
+			tmp = calloc(1, 14);
+			memcpy(tmp, payload + i, 13);
+			timestamp = strtoumax(tmp, NULL, 10);
+			free(tmp);
+			logmsg(LVL_DEBUG, "query timestamp: %"PRIu64, timestamp);
+			lc_query_push(q, op, &timestamp);
+			i += 13;
+			continue;
+		}
 	}
+
 
 	msgs = lc_query_exec(q, &msglist);
 	logmsg(LVL_DEBUG, "%i messages found", msgs);

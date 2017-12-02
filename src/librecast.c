@@ -348,6 +348,7 @@ int lcast_cmd_channel_getmsg(int sock, lcast_frame_t *req, char *payload)
 	lc_query_t *q = NULL;
 	lc_messagelist_t *msglist = NULL, *msg;
 	lcast_frame_t *rep = NULL;
+	uint32_t len = 0;
 	uint64_t timestamp;
 
 	if (req == NULL)
@@ -364,20 +365,21 @@ int lcast_cmd_channel_getmsg(int sock, lcast_frame_t *req, char *payload)
 	/* process payload into query filters */
 	/* [queryop][data] */
 	while (i < req->len) {
-		memcpy(&op, payload, 1); i += 1;
+		memcpy(&op, payload + i, 1); i += 1;
+		memcpy(&len, payload + i, 4); i += 4;
+		len = be32toh(len);
 		logmsg(LVL_DEBUG, "query opcode: %i", op);
 		if ((op & LC_QUERY_TIME) == LC_QUERY_TIME) {
-			tmp = calloc(1, 14);
-			memcpy(tmp, payload + i, 13);
+			tmp = calloc(1, len + 1);
+			memcpy(tmp, payload + i, len);
 			timestamp = strtoumax(tmp, NULL, 10);
 			free(tmp);
 			logmsg(LVL_DEBUG, "query timestamp: %"PRIu64, timestamp);
 			lc_query_push(q, op, &timestamp);
-			i += 13;
+			i += len;
 			continue;
 		}
 	}
-
 
 	msgs = lc_query_exec(q, &msglist);
 	logmsg(LVL_DEBUG, "%i messages found", msgs);

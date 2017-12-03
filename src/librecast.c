@@ -237,9 +237,8 @@ int lcast_frame_send(int sock, lcast_frame_t *req, char *payload, uint32_t payle
 	msg->id2 = htonl(req->id2);
 	msg->token = htonl(req->token);
 
-	/* drop timestamp precision to seconds */
 	logmsg(LOG_DEBUG, "lcast timestamp: %"PRIu64"", req->timestamp);
-	msg->timestamp = htobe64(req->timestamp / 1000000000);
+	msg->timestamp = htobe64(req->timestamp);
 
 	buf = calloc(1, len_send);
 	memcpy(buf, msg, len_head);
@@ -365,11 +364,20 @@ int lcast_cmd_channel_getmsg(int sock, lcast_frame_t *req, char *payload)
 	/* process payload into query filters */
 	/* [queryop(8)][len(32)][data] */
 	while (i < req->len) {
-		memcpy(&op, payload + i, 1); i += 1;
+		memcpy(&op, payload + i, 2); i += 2;
+		op = be16toh(op);
 		memcpy(&len, payload + i, 4); i += 4;
 		len = be32toh(len);
 		logmsg(LVL_DEBUG, "query opcode: %i", op);
-		if ((op & LC_QUERY_TIME) == LC_QUERY_TIME) {
+		if (op == LC_QUERY_DB || op == LC_QUERY_KEY) {
+			tmp = calloc(1, len + 1);
+			memcpy(tmp, payload + i, len);
+			logmsg(LVL_DEBUG, "query db/key: %s", tmp);
+			lc_query_push(q, op, tmp);
+			i += len;
+			continue;
+		}
+		else if ((op & LC_QUERY_TIME) == LC_QUERY_TIME) {
 			tmp = calloc(1, len + 1);
 			memcpy(tmp, payload + i, len);
 			timestamp = strtoumax(tmp, NULL, 10);
@@ -379,9 +387,14 @@ int lcast_cmd_channel_getmsg(int sock, lcast_frame_t *req, char *payload)
 			i += len;
 			continue;
 		}
+		else {
+			break;
+		}
 	}
 
 	msgs = lc_query_exec(q, &msglist);
+	lc_query_free(q);
+
 	logmsg(LVL_DEBUG, "%i messages found", msgs);
 	for (msg = msglist; msg != NULL; msg = msg->next) {
 		rep = calloc(1, sizeof(lcast_frame_t));

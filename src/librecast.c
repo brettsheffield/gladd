@@ -395,7 +395,7 @@ int lcast_cmd_channel_getmsg(int sock, lcast_frame_t *req, char *payload)
 	msgs = lc_query_exec(q, &msglist);
 	lc_query_free(q);
 
-	logmsg(LVL_DEBUG, "%i messages found", msgs);
+	logmsg(LVL_DEBUG, "found %i messages", msgs);
 	for (msg = msglist; msg != NULL; msg = msg->next) {
 		rep = calloc(1, sizeof(lcast_frame_t));
 		rep->opcode = LCAST_OP_SOCKET_MSG;
@@ -407,7 +407,6 @@ int lcast_cmd_channel_getmsg(int sock, lcast_frame_t *req, char *payload)
 		lcast_frame_send(websock, rep, msg->data, strlen(msg->data));
 		free(rep);
 	}
-	logmsg(LVL_DEBUG, "found %i messages", msgs);
 
 	lc_msglist_free(msglist);
 	lc_query_free(q);

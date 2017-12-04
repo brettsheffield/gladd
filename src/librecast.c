@@ -362,7 +362,7 @@ int lcast_cmd_channel_getmsg(int sock, lcast_frame_t *req, char *payload)
 	lc_query_push(q, LC_QUERY_CHANNEL, chan->name);
 
 	/* process payload into query filters */
-	/* [queryop(8)][len(32)][data] */
+	/* [queryop(16)][len(32)][data] */
 	while (i < req->len) {
 		memcpy(&op, payload + i, 2); i += 2;
 		op = be16toh(op);

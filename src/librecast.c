@@ -393,7 +393,6 @@ int lcast_cmd_channel_getmsg(int sock, lcast_frame_t *req, char *payload)
 	}
 
 	msgs = lc_query_exec(q, &msglist);
-	lc_query_free(q);
 
 	logmsg(LVL_DEBUG, "found %i messages", msgs);
 	for (msg = msglist; msg != NULL; msg = msg->next) {
@@ -411,6 +410,7 @@ int lcast_cmd_channel_getmsg(int sock, lcast_frame_t *req, char *payload)
 	lc_msglist_free(msglist);
 	lc_query_free(q);
 
+	logmsg(LVL_TRACE, "%s exiting", __func__);
 	return 0;
 }
 

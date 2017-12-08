@@ -176,31 +176,31 @@ int ws_read_request(int sock, ws_frame_t **ret)
 		return error_log(LVL_ERROR, ERROR_WEBSOCKET_RSVBITSET);
 	}
 
-        switch (f->opcode) {
-        case 0x0:
-                logmsg(LVL_DEBUG, "(websocket) opcode 0x0: continuation frame");
-                break;
-        case 0x1:
-                logmsg(LVL_DEBUG, "(websocket) opcode 0x1: text frame");
-                break;
-        case 0x2:
-                logmsg(LVL_DEBUG, "(websocket) opcode 0x2: binary frame");
-                break;
-        /* %x3-7 are reserved for further non-control frames */
-        case 0x8:
-                logmsg(LVL_DEBUG, "(websocket) opcode 0x8: connection close");
-                break;
-        case 0x9:
-                logmsg(LVL_DEBUG, "(websocket) opcode 0x9: ping");
-                break;
-        case 0xa:
-                logmsg(LVL_DEBUG, "(websocket) opcode 0xa: pong");
-                break;
-        /* %xB-F are reserved for further control frames */
-        default:
-                logmsg(LVL_DEBUG, "(websocket) unknown opcode %#x received", f->opcode);
+	switch (f->opcode) {
+	case 0x0:
+		logmsg(LVL_DEBUG, "(websocket) opcode 0x0: continuation frame");
+		break;
+	case 0x1:
+		logmsg(LVL_DEBUG, "(websocket) opcode 0x1: text frame");
+		break;
+	case 0x2:
+		logmsg(LVL_DEBUG, "(websocket) opcode 0x2: binary frame");
+		break;
+	/* %x3-7 are reserved for further non-control frames */
+	case 0x8:
+		logmsg(LVL_DEBUG, "(websocket) opcode 0x8: connection close");
+		break;
+	case 0x9:
+		logmsg(LVL_DEBUG, "(websocket) opcode 0x9: ping");
+		break;
+	case 0xa:
+		logmsg(LVL_DEBUG, "(websocket) opcode 0xa: pong");
+		break;
+	/* %xB-F are reserved for further control frames */
+	default:
+		logmsg(LVL_DEBUG, "(websocket) unknown opcode %#x received", f->opcode);
 		return error_log(LVL_ERROR, ERROR_WEBSOCKET_BAD_OPCODE);
-        }
+	}
 
 	if (f->mask == 1) {
 		logmsg(LVL_DEBUG, "(websocket) MASK");

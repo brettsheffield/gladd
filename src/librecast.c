@@ -705,6 +705,7 @@ void lcast_init()
 	if (lctx == NULL)
 		lctx = lc_ctx_new();
 	assert(lctx != NULL);
+	lc_db_open(lctx, NULL);
 	logmsg(LVL_DEBUG, "LIBRECAST CONTEXT id=%u", lc_ctx_get_id(lctx));
 
 	/* start PING thread */

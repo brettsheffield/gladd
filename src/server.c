@@ -3,7 +3,7 @@
  *
  * this file is part of GLADD
  *
- * Copyright (c) 2012, 2013 Brett Sheffield <brett@gladserv.com>
+ * Copyright (c) 2012-2014, 2018 Brett Sheffield <brett@gladserv.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,7 +37,6 @@
 #include "config.h"
 #include "handler.h"
 #include "main.h"
-#include "tls.h"
 #include "server.h"
 #include "signals.h"
 
@@ -114,8 +113,6 @@ int server_start(int lockfd)
         struct sockaddr_storage their_addr;
         char address[NI_MAXHOST];
         char buf[sizeof(long)];
-
-        if (config->ssl != 0) ssl_setup();
 
         /* get addresses */
         get_addresses(&p);

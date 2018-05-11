@@ -3,7 +3,7 @@
  *
  * this file is part of GLADD
  *
- * Copyright (c) 2012-2017 Brett Sheffield <brett@gladserv.com>
+ * Copyright (c) 2012-2018 Brett Sheffield <brett@gladserv.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,7 +39,7 @@
 SSL_CTX *ctx;
 SSL_METHOD *method;
 SSL_SESSION session;
-SSL *ssl;
+SSL *ssl = NULL;
 DH *dh;
 
 char *ssl_err(int errcode)
@@ -211,9 +211,15 @@ size_t ssl_send(char *msg, size_t len)
 void ssl_setup()
 {
         int ret;
-        SSL_load_error_strings();
-        SSL_library_init();
-        OpenSSL_add_all_algorithms();
+
+        if (ctx == NULL) {
+                SSL_load_error_strings();
+                SSL_library_init();
+                OpenSSL_add_all_algorithms();
+        }
+        else {
+                SSL_CTX_free(ctx);
+        }
         ctx = SSL_CTX_new(SSLv23_server_method());
         if (config->ssl > 1) {
                 SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2);

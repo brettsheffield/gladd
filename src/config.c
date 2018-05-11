@@ -3,7 +3,7 @@
  *
  * this file is part of GLADD
  *
- * Copyright (c) 2012-2017 Brett Sheffield <brett@gladserv.com>
+ * Copyright (c) 2012-2018 Brett Sheffield <brett@gladserv.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,6 +31,7 @@
 #include "main.h"
 #include "config.h"
 #include "string.h"
+#include "tls.h"
 
 void    handle_url_static(char *type, char params[LINE_MAX]);
 void    handle_url_dynamic(char *type, char params[LINE_MAX]);
@@ -1079,6 +1080,8 @@ int read_config(char *configfile)
         /* if config parsed okay, make active */
         if (retval == 0)
                 config = config_new;
+
+        if (config->ssl != 0) ssl_setup();
 
         /* set syslog mask */
         setlogmask(LOG_UPTO((config->debug) ? LOG_DEBUG : LOG_INFO));

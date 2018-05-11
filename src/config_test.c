@@ -3,7 +3,7 @@
  *
  * this file is part of GLADD
  *
- * Copyright (c) 2012-2017 Brett Sheffield <brett@gladserv.com>
+ * Copyright (c) 2012-2018 Brett Sheffield <brett@gladserv.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -104,6 +104,7 @@ char *test_config_defaults()
 /* ensure config values are read from file */ 
 char *test_config_set()
 {
+	config->ssl = -1; /* override default before test */
         read_config("test.conf");
         mu_assert("Ensure debug is set from config", config->debug == 1);
         mu_assert("Ensure port is set from config", config->port == 3000);
@@ -116,7 +117,7 @@ char *test_config_set()
                 strcmp(config->serverstring, "A server!") == 0);
         mu_assert("Ensure sessiontimeout is set from config",
                 config->sessiontimeout == 600);
-        mu_assert("Ensure ssl is set from config", config->ssl == 1);
+        mu_assert("Ensure ssl is set from config", config->ssl == 0);
         mu_assert("Ensure encoding is set from config", 
                 strcmp(config->encoding, "ISO-8859-1") == 0);
         mu_assert("Ensure sslca is set from config", 

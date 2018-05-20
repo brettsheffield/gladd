@@ -305,7 +305,7 @@ url_t *http_match_template(http_request_t *r)
 	if (res == NULL)
 		syslog(LOG_DEBUG, "No template matches URL");
 	else
-		syslog(LOG_DEBUG, "Template matched: '%s'", u->view);
+		syslog(LOG_DEBUG, "Template matched: '%s'", res->view);
         return res;
 }
 

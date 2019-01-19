@@ -3,7 +3,7 @@
  *
  * this file is part of GLADD
  *
- * Copyright (c) 2012-2017 Brett Sheffield <brett@gladserv.com>
+ * Copyright (c) 2012-2019 Brett Sheffield <brett@gladserv.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1187,12 +1187,26 @@ http_status_code_t response_xml_plugin(int sock, url_t *u)
 		syslog(LOG_DEBUG, "no request data");
 	else {
 		syslog(LOG_DEBUG, "%s", request->data->value);
-		if (request->data->value != NULL) {
-			/* write to stdin of plugin */
-			fd = fdopen(pipes[1], "w");
-			fprintf(fd, "%s", request->data->value);
-			fclose(fd);
+
+		/* write to stdin of plugin */
+		fd = fdopen(pipes[1], "w");
+		keyval_t *kv = request->data;
+		fprintf(fd, "<request>");
+		while (kv != NULL) {
+			if (kv->value != NULL) {
+				fprintf(fd, "<field>");
+				fprintf(fd, "<name>%s</name>", kv->key);
+				fprintf(fd, "<value>%s</value>", kv->value);
+				fprintf(fd, "</field>");
+			}
+			else {
+				break;
+			}
+			kv = kv->next;
 		}
+		fprintf(fd, "</request>");
+		fclose(fd);
+
 	}
 
         /* read from stdout of plugin */

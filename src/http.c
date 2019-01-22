@@ -3,7 +3,7 @@
  *
  * this file is part of GLADD
  *
- * Copyright (c) 2012-2018 Brett Sheffield <brett@gladserv.com>
+ * Copyright (c) 2012-2019 Brett Sheffield <brett@gladserv.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -626,23 +626,9 @@ int read_request_body(int sock, char *ctype, long lclen,
                 *err = HTTP_BAD_REQUEST;
                 return 0;
         }
+	r->data->key = strdup(ctype);
+	r->data->value = body;
 
-        /* NB: only match first part of mime type, ignoring charset etc. */
-        if (strlcmp(ctype, "text/xml") == 0) {
-                asprintf(&r->data->key, "text/xml");
-                r->data->value = body;
-        }
-        else if (strlcmp(ctype, "text/ldif") == 0) {
-                asprintf(&r->data->key, "text/ldif");
-                r->data->value = body;
-        }
-        if (strlcmp(ctype, "application/x-www-form-urlencoded") == 0) {
-                bodyline(r, body); /* process keyvals */
-        }
-	else {
-		r->data->key = strdup(ctype);
-		r->data->value = body;
-	}
         return 1;
 }
 

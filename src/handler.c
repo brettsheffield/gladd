@@ -343,12 +343,7 @@ handler_result_t handle_request(int sock, char *s)
 		return HANDLER_CLOSE_CONNECTION;
         }
         else if (strcmp(u->type, "plugin") == 0) {
-                if (strcmp(u->method, "POST") == 0) {
-                        err = response_xml_plugin(sock, u);
-                }
-                else {
-                        err = response_plugin(sock, u);
-                }
+                err = response_plugin(sock, u);
                 if (err != 0)
                         http_response(sock, err);
         }
@@ -1127,44 +1122,41 @@ http_status_code_t response_upload(int sock, url_t *u)
         return err;
 }
 
-/* plugin function to process xml POST data
- * fork and execute plugin, write request data (xml) to plugin stdin
- * and return xml from plugin stdout to http client
- */
-/* TODO: set plugin POST data limit from config */
-http_status_code_t response_xml_plugin(int sock, url_t *u)
+http_status_code_t response_plugin(int sock, url_t *u)
 {
-        FILE *fd = NULL;
-        char plugout[BUFSIZE] = "";
-        int err = 0;
-        int pipes[4];
-        pid_t pid = 0;
+	FILE *fd = NULL;
+	int err = 0;
+	int pipes[4];
+	int status = 0;
+	pid_t pid = 0;
 
-        pipe(&pipes[0]);
-        pipe(&pipes[2]);
+	syslog(LOG_DEBUG, "response_plugin");
 
-        /* fork and exec */
-        pid = fork();
-        if (pid == -1) {
-                syslog(LOG_ERR, "plugin fork failed");
-                return HTTP_INTERNAL_SERVER_ERROR;
-        }
+	pipe(&pipes[0]);
+	pipe(&pipes[2]);
 
-        if (pid == 0) { /* child */
-                /* close unused pipes */
-                close(pipes[1]);
-                close(pipes[2]);
+	/* fork and exec */
+	pid = fork();
+	if (pid == -1) {
+		syslog(LOG_ERR, "plugin fork failed");
+		return HTTP_INTERNAL_SERVER_ERROR;
+	}
 
-                /* redirect stdin and stdout to pipes */
-                close(STDIN_FILENO);
-                close(STDOUT_FILENO);
-                dup2(pipes[0], STDIN_FILENO);
-                dup2(pipes[3], STDOUT_FILENO);
+	if (pid == 0) { /* child */
+		/* close unused pipes */
+		close(pipes[1]);
+		close(pipes[2]);
 
-                /* execute plugin */
+		/* redirect stdin and stdout to pipes */
+		close(STDIN_FILENO);
+		close(STDOUT_FILENO);
+		dup2(pipes[0], STDIN_FILENO);
+		dup2(pipes[3], STDOUT_FILENO);
+
+		/* execute plugin */
 		int i = 0;
-                char *cmd = strdup(u->path);
-                replacevars(&cmd, request->res);
+		char *cmd = strdup(u->path);
+		replacevars(&cmd, request->res);
 		char **args = calloc(strlen(cmd), sizeof(char *));
 		args[i++] = cmd;
 		char *word = strtok(cmd, " ");
@@ -1172,128 +1164,45 @@ http_status_code_t response_xml_plugin(int sock, url_t *u)
 			word = strtok(NULL, " ");
 			args[i++] = word;
 		}
-                syslog(LOG_DEBUG, "executing plugin: %s", cmd);
-                if (execv(cmd, args) == -1) {
-                        syslog(LOG_ERR, "error executing plugin: %s",
-					strerror(errno));
-                }
+		syslog(LOG_DEBUG, "executing plugin: %s", cmd);
+		if (execv(cmd, args) == -1)
+			syslog(LOG_ERR, "error executing plugin: %s", strerror(errno));
 		free(args);
-                free(cmd);
-                _exit(EXIT_FAILURE);
-        }
-        close(pipes[0]); close(pipes[3]); /* close unused pipes in parent */
+		free(cmd);
+		_exit(EXIT_FAILURE);
+	}
+	close(pipes[0]); close(pipes[3]); /* close unused pipes in parent */
 
 	if (request->data == NULL)
 		syslog(LOG_DEBUG, "no request data");
 	else {
-		syslog(LOG_DEBUG, "%s", request->data->value);
-
 		/* write to stdin of plugin */
 		fd = fdopen(pipes[1], "w");
-		keyval_t *kv = request->data;
-		fprintf(fd, "<request>");
-		while (kv != NULL) {
-			if (kv->value != NULL) {
-				fprintf(fd, "<field>");
-				fprintf(fd, "<name>%s</name>", kv->key);
-				fprintf(fd, "<value>%s</value>", kv->value);
-				fprintf(fd, "</field>");
-			}
-			else {
-				break;
-			}
-			kv = kv->next;
+		if (request->data->value != NULL) {
+			fprintf(fd, "%s", request->data->value);
 		}
-		fprintf(fd, "</request>");
 		fclose(fd);
 
 	}
 
-        /* read from stdout of plugin */
-        fd = fdopen(pipes[2], "r");
-        memset(plugout, 0, sizeof plugout);
-        fread(plugout, sizeof plugout - 1, 1, fd);
-        fclose(fd);
+	/* read from stdout of plugin */
+	char plugout[BUFSIZE] = "";
+	fd = fdopen(pipes[2], "r");
+	memset(plugout, 0, sizeof plugout);
+	fread(plugout, sizeof plugout - 1, 1, fd);
+	fclose(fd);
 
-        /* obtain plugin exit code */
-        int status = 0;
-        int httpcode = HTTP_INTERNAL_SERVER_ERROR;
-        waitpid(pid, &status, 0);
-	syslog(LOG_DEBUG, "status is %i", status);
-        if (WIFEXITED(status)) {
-                syslog(LOG_DEBUG, "plugin exited with code %d",
-                        WEXITSTATUS(status));
-                switch (WEXITSTATUS(status)) {
-                case 0:
-                        httpcode = HTTP_OK;
-                        break;
-                case 4:
-                        httpcode = HTTP_BAD_REQUEST;
-                        break;
-                default:
-                        break;
-                }
-        }
-        /* respond to http client */
-        char *r = strdup(plugout);
-        set_headers(&r); /* set any additional headers */
-        http_response_full(sock, httpcode, "text/xml", r);
-        free(r);
+	/* write it back to client */
+	http_response_full(sock, HTTP_OK, "text/html", plugout);
 
-        return err;
-}
+	/* pop TCP cork */
+	setcork(sock, 0);
 
-/* call a plugin */
-http_status_code_t response_plugin(int sock, url_t *u)
-{
-        FILE *fd = NULL;
-        char pbuf[BUFSIZE] = "";
-        http_status_code_t err = 0;
-        int ret = 0;
-        ssize_t ibytes = BUFSIZE;
-        char *cmd = NULL;
+	/* get plugin exit status */
+	waitpid(pid, &status, 0);
+	syslog(LOG_DEBUG, "plugin exited with %i", status);
 
-        cmd = strdup(u->path);
-        replacevars(&cmd, request->res);
-        syslog(LOG_DEBUG, "executing plugin: %s", cmd);
-        fd = popen(cmd, "r");
-        if (fd == NULL) {
-                syslog(LOG_ERR, "popen(): %s", strerror(errno));
-                free(cmd);
-                return HTTP_INTERNAL_SERVER_ERROR;
-        }
-        free(cmd);
-
-        /* write HTTP headers */
-        //set_headers(&r); /* set any additional headers */
-        http_response_headers(sock, HTTP_OK, 0, NULL);
-        snd_blank_line(sock);
-
-        /* keep reading from plugin and sending output back to HTTP client */
-        char *chunksize;
-        while (ibytes == BUFSIZE) {
-                ibytes = fread(pbuf, 1, BUFSIZE, fd);
-                syslog(LOG_DEBUG, "writing %i bytes to socket", (int) ibytes);
-                asprintf(&chunksize, "%x\r\n", (int)ibytes);
-                snd(sock, chunksize, strlen(chunksize), 0);
-                snd(sock, pbuf, ibytes, 0);
-                snd(sock, "\r\n", 2, 0); /* CRLF */
-                free(chunksize);
-        }
-        snd(sock, "0\r\n", 3, 0); /* Send final (empty) chunk */
-        snd_blank_line(sock);
-
-        /* pop TCP cork */
-        setcork(sock, 0);
-
-        /* TODO: handle exit codes */
-        ret = pclose(fd);
-        if (ret == -1) {
-                syslog(LOG_ERR, "pclose(): %s", strerror(errno));
-        }
-
-
-        return err;
+	return err;
 }
 
 #ifdef _GIT

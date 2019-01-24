@@ -1187,20 +1187,24 @@ http_status_code_t response_plugin(int sock, url_t *u)
 
 	/* read from stdout of plugin */
 	char plugout[BUFSIZE] = "";
+	size_t len = 0;
 	fd = fdopen(pipes[2], "r");
 	memset(plugout, 0, sizeof plugout);
-	fread(plugout, sizeof plugout - 1, 1, fd);
+	len = fread(plugout, 1, sizeof plugout - 1, fd);
 	fclose(fd);
 
+	/* get plugin exit status */
+	waitpid(pid, &status, 0);
+	if (WIFEXITED(status)) {
+		syslog(LOG_DEBUG, "plugin exited with code %i", WEXITSTATUS(status));
+	}
+
 	/* write it back to client */
-	http_response_full(sock, HTTP_OK, "text/html", plugout);
+	snd(sock, plugout, len, 0);
 
 	/* pop TCP cork */
 	setcork(sock, 0);
 
-	/* get plugin exit status */
-	waitpid(pid, &status, 0);
-	syslog(LOG_DEBUG, "plugin exited with %i", status);
 
 	return err;
 }

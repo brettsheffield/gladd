@@ -3,7 +3,7 @@
  *
  * this file is part of GLADD
  *
- * Copyright (c) 2012-2016 Brett Sheffield <brett@gladserv.com>
+ * Copyright (c) 2012-2019 Brett Sheffield <brett@gladserv.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -75,6 +75,18 @@ char *lstrip(char *str)
         while (isspace(*str)) str++;
 
         return str;
+}
+
+/* return pointer to first character in string b which does not match string a */
+char *match_upto(char *a, char *b)
+{
+        int i = 0;
+        while (1) {
+                if (a[i] != b[i])
+                        break;
+                i++;
+        }
+        return b + i;
 }
 
 /* binary search.  Returns pointer to first occurance of string in binary data,

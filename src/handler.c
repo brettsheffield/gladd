@@ -1135,6 +1135,9 @@ http_status_code_t response_plugin(int sock, url_t *u)
 	pipe(&pipes[0]);
 	pipe(&pipes[2]);
 
+	/* TODO: set CGI environment variables */
+	setenv("PATH_INFO", match_upto(u->url, request->res), 0);
+
 	/* fork and exec */
 	pid = fork();
 	if (pid == -1) {

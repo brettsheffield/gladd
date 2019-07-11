@@ -1310,22 +1310,28 @@ http_status_code_t response_git(int sock, url_t *u)
 /* serve static files */
 http_status_code_t response_static(int sock, url_t *u)
 {
-        char *filename = NULL;
-        char *base = NULL;
-        http_status_code_t err = 0;
+	char *filename = NULL;
+	char *base = NULL;
+	http_status_code_t err = 0;
 
-        base = basefile_pattern(request->res, u->url);
-        if (strcmp(u->url, request->res) == 0) {
-                filename = strdup(u->path);
-        }
-        else {
-                asprintf(&filename, "%s%s", u->path, base);
-        }
-        free(base);
-        send_file(sock, filename, &err);
-        free(filename);
+	base = basefile_pattern(request->res, u->url);
+	if (strcmp(u->url, request->res) == 0) {
+		/* exact match, use it */
+		filename = strdup(u->path);
+	}
+	else if (strcmp(u->path + strlen(u->path) - 1, "/") == 0) {
+		/* wildcard match & path is a directory, append trailing char */
+		asprintf(&filename, "%s%s", u->path, base);
+	}
+	else {
+		/* wildcard, but path points to file. Just serve the file */
+		filename = strdup(u->path);
+	}
+	free(base);
+	send_file(sock, filename, &err);
+	free(filename);
 
-        return err;
+	return err;
 }
 
 /* send a static file */

@@ -331,7 +331,7 @@ char *test_http_read_request_post_large()
 
         /* write enough data to overfill recv buffer */
         for (i=headlen; i<buflen; i++) {
-                strncpy(databuf + i, "0", 1);
+                strcpy(databuf + i, "0");
         }
         write(sv[0], databuf, strlen(databuf));
         close(sv[0]); /* close write socket */

@@ -1319,7 +1319,7 @@ http_status_code_t response_static(int sock, url_t *u)
 		/* exact match, use it */
 		filename = strdup(u->path);
 	}
-	else if (strcmp(u->path + strlen(u->path) - 1, "/") == 0) {
+	else if ((*(u->path + strlen(u->path) - 1)) == '/') {
 		/* wildcard match & path is a directory, append trailing char */
 		asprintf(&filename, "%s%s", u->path, base);
 	}

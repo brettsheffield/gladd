@@ -3,7 +3,7 @@
  *
  * this file is part of GLADD
  *
- * Copyright (c) 2012-2018 Brett Sheffield <brett@gladserv.com>
+ * Copyright (c) 2012-2019 Brett Sheffield <brett@gladserv.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,6 +31,7 @@
 #include <openssl/ssl.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <syslog.h>
@@ -38,7 +39,6 @@
 
 SSL_CTX *ctx;
 SSL_METHOD *method;
-SSL_SESSION session;
 SSL *ssl = NULL;
 DH *dh;
 

@@ -2,7 +2,7 @@
 # 
 # this file is part of GLADD
 # 
-# Copyright (c) 2012-2017 Brett Sheffield <brett@gladserv.com>
+# Copyright (c) 2012-2019 Brett Sheffield <brett@gladserv.com>
 # 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -39,6 +39,8 @@ INSTALL=@INSTALL@
 OBJECTFILES=args.o @autho@ config.o errors.o handler.o help.o http.o @librecasto@ log.o misc.o mime.o server.o signals.o string.o tls.o utils.o websocket.o xml.o
 TESTFILES=test.o args_test.o @authtesto@ @dbtesto@ config_test.o handler_test.o http_test.o string_test.o xml_test.o
 
+.PHONY: clean test leakcheck install
+
 ${PROGRAM}: ${PROGRAM}_test main.o
 	${CC} ${CFLAGS} ${INCLUDES} -o ${PROGRAM} ${OBJECTFILES} main.o ${LIBS}
 
@@ -67,13 +69,16 @@ config.o: config.c config.h
 config_test.o: minunit.h config_test.c config_test.h
 	${CC} ${CFLAGS} -c config_test.c
 
+dh.h:
+	openssl dhparam -C -noout 1024 > dh.h
+
 db_test.o: db_test.c db_test.h
 	${CC} ${CFLAGS} -c db_test.c
 
 errors.o: errors.c errors.h
 	${CC} ${CFLAGS} -c errors.c
 
-tls.o: tls.h @ssl@.c
+tls.o: tls.h @ssl@.c dh.h
 	${CC} ${CFLAGS} -o tls.o -c @ssl@.c
 
 handler_test.o: handler_test.c handler_test.h
@@ -133,8 +138,6 @@ xml.o: xml.h xml.c
 xml_test.o: minunit.h xml_test.c xml_test.h
 	${CC} ${CFLAGS} -c xml_test.c
 
-
-.PHONY: clean test leakcheck install
 
 clean:
 	rm -f ${PROGRAM} ${PROGRAM}_test main.o ${OBJECTFILES} ${TESTFILES} core

@@ -20,9 +20,6 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "tls.h"
-#include "dh.h"
-#include "config.h"
 #include <arpa/inet.h>
 #include <netinet/tcp.h>
 #include <openssl/dh.h>
@@ -36,6 +33,9 @@
 #include <sys/types.h>
 #include <syslog.h>
 #include <unistd.h>
+#include "dh.h"
+#include "config.h"
+#include "tls.h"
 
 SSL_CTX *ctx;
 SSL_METHOD *method;

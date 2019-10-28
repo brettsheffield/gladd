@@ -381,6 +381,8 @@ static int handler_fetch_keyval(db_t *db, url_t *u, keyval_t **k)
 	kv->key = strdup(u->view);
 	replacevars(&kv->key, request->res);
 
+	syslog(LOG_DEBUG, "fetching key '%s'", kv->key);
+
 	/* fetch data */
 	if (db_fetch_keyval(db, kv) != EXIT_SUCCESS) {
 		syslog(LOG_ERR, "Error in db_fetch_key()");
@@ -424,39 +426,65 @@ http_status_code_t response_keyval(int sock, url_t *u)
 		isconn = 1;
 	}
 
-	/* fetch keyval */
-	if ((err = handler_fetch_keyval(db, u, &kv)) != 0) {
-		goto close_conn;
-	}
-
-	/* fetch template */
-	template = http_match_template(request);
-	if (template) {
-		syslog(LOG_DEBUG, "fetching template '%s'", template->view);
-		/* TODO: check database is the same as for url */
-		if ((err = handler_fetch_keyval(db, template, &kvt)) != 0) {
+        if (strcmp(u->method, "GET") == 0) {
+		/* fetch keyval */
+		if ((err = handler_fetch_keyval(db, u, &kv)) != 0) {
 			goto close_conn;
 		}
-		xmltransform_mem(kvt->value, kv->value, &page);
-		if (page == NULL)
+
+		/* fetch template */
+		template = http_match_template(request);
+		if (template) {
+			syslog(LOG_DEBUG, "fetching template '%s'", template->view);
+			/* TODO: check database is the same as for url */
+			if ((err = handler_fetch_keyval(db, template, &kvt)) != 0) {
+				goto close_conn;
+			}
+			xmltransform_mem(kvt->value, kv->value, &page);
+			if (page == NULL)
+				return HTTP_INTERNAL_SERVER_ERROR;
+		}
+		else {
+			page = strdup(kv->value);
+		}
+		free_db(db);
+
+		asprintf(&headers,"%s\nContent-Length: %i",MIME_HTML,(int)strlen(page));
+		if (asprintf(&r, RESPONSE_200, config->serverstring, headers, page) == -1)
+		{
+			free(kv->key);
+			free(kv->value);
+			free(kv);
 			return HTTP_INTERNAL_SERVER_ERROR;
+		}
+		free(page);
+		free(headers);
+		set_headers(&r); /* set any additional headers */
+
+	}
+        else if (strcmp(u->method, "POST") == 0) {
+		kv = malloc(sizeof(keyval_t));
+		kv->key = strdup(u->view);
+		replacevars(&kv->key, request->res);
+		kv->value = request->data->value;
+
+		syslog(LOG_DEBUG, "writing key '%s'", kv->key);
+
+		if ((err = db_insert(db, u->view, kv)) == 0) {
+			http_response(sock, HTTP_OK);
+		}
+		else {
+			err = HTTP_INTERNAL_SERVER_ERROR;
+		}
+
+		free(kv->key);
+		free(kv);
+		goto close_conn;
 	}
 	else {
-		page = strdup(kv->value);
+                syslog(LOG_ERR, "unsupported method for keyval");
+                return HTTP_METHOD_NOT_ALLOWED;
 	}
-	free_db(db);
-
-	asprintf(&headers,"%s\nContent-Length: %i",MIME_HTML,(int)strlen(page));
-	if (asprintf(&r, RESPONSE_200, config->serverstring, headers, page) == -1)
-	{
-		free(kv->key);
-		free(kv->value);
-		free(kv);
-		return HTTP_INTERNAL_SERVER_ERROR;
-	}
-	free(page);
-	free(headers);
-	set_headers(&r); /* set any additional headers */
 	respond(sock, r);
 	free(kv->key);
 	free(kv->value);

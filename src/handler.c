@@ -426,7 +426,7 @@ http_status_code_t response_keyval(int sock, url_t *u)
 		isconn = 1;
 	}
 
-        if (strcmp(u->method, "GET") == 0) {
+	if (strcmp(u->method, "GET") == 0) {
 		/* fetch keyval */
 		if ((err = handler_fetch_keyval(db, u, &kv)) != 0) {
 			goto close_conn;
@@ -462,7 +462,7 @@ http_status_code_t response_keyval(int sock, url_t *u)
 		set_headers(&r); /* set any additional headers */
 
 	}
-        else if (strcmp(u->method, "POST") == 0) {
+	else if (strcmp(u->method, "POST") == 0) {
 		kv = malloc(sizeof(keyval_t));
 		kv->key = strdup(u->view);
 		replacevars(&kv->key, request->res);
@@ -482,8 +482,8 @@ http_status_code_t response_keyval(int sock, url_t *u)
 		goto close_conn;
 	}
 	else {
-                syslog(LOG_ERR, "unsupported method for keyval");
-                return HTTP_METHOD_NOT_ALLOWED;
+		syslog(LOG_ERR, "unsupported method for keyval");
+		return HTTP_METHOD_NOT_ALLOWED;
 	}
 	respond(sock, r);
 	free(kv->key);

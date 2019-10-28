@@ -187,6 +187,7 @@ char *check_content_type(http_request_t *r, http_status_code_t *err, char *type)
                 return NULL;
         }
         if ((strcmp(mtype, "application/x-www-form-urlencoded") == 0)
+        || (strlcmp(mtype, "text/html") == 0)
         || (strlcmp(mtype, "text/xml") == 0)
         || (strlcmp(mtype, "application/json") == 0)
         || (strlcmp(mtype, "text/ldif") == 0))

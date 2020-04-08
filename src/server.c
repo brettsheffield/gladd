@@ -178,7 +178,7 @@ int server_start(int lockfd)
         }
 
         /* write pid to lockfile */
-        snprintf(buf, sizeof(long), "%ld\n", (long) getpid());
+        snprintf(buf, sizeof(long), "%i\n", getpid());
         if (write(lockfd, buf, strlen(buf)) != strlen(buf)) {
                 fprintf(stderr, "Error writing to pidfile\n");
                 exit(EXIT_FAILURE);

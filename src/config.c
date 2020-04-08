@@ -340,13 +340,13 @@ int add_group(char *value)
                 u->username = strdup(strip(members[j]));
                 u->password = NULL;
                 u->next = NULL;
+                tmp = u;
                 if (j == 0) {
                         new->members = u;
                 }
                 else {
                         tmp->next = u;
                 }
-                tmp = u;
                 u = NULL;
         }
         new->next = NULL;
